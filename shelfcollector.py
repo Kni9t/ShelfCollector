@@ -4,11 +4,14 @@ from bs4 import BeautifulSoup
 import re
 
 class ShelfCollector:
-    def CollectSales(self, urlPart):
+    def __init__(self, urlPart):
+        self.urlPart = urlPart
+    
+    def CollectSales(self):
         dataFrom = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
         dataTo = datetime.now().strftime('%Y-%m-%d')
 
-        url = f'{urlPart}&dateFrom={dataFrom}&dateTo={dataTo}'
+        url = f'{self.urlPart}&dateFrom={dataFrom}&dateTo={dataTo}'
 
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
