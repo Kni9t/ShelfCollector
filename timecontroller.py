@@ -1,5 +1,3 @@
-import logging
-import time
 from datetime import datetime, timedelta
 
 class TimeController:
@@ -16,4 +14,4 @@ class TimeController:
 
         sleep_seconds = int((next_time - now).total_seconds()) + 5
         
-        return sleep_seconds
+        return sleep_seconds, next_time
