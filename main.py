@@ -1,7 +1,9 @@
 import json
+import time
 
 from shelfcollector import ShelfCollector
 from sqlcontroller import SQLController
+from timecontroller import TimeController
 
 parametersDict = {}
 try:
@@ -12,8 +14,21 @@ except Exception as e:
     print(f'Ошибка при чтении ссылки! {e}')
 
 Collector = ShelfCollector(parametersDict['url'])
+Timer = TimeController()
 SQL = SQLController()
 
 SQL.CreateTable()
 
-print(Collector.CollectSales())
+while True:
+    try:
+        data = Collector.CollectSales()
+        SQL.DataInsert(data)
+        
+        print(f'Данные за сегодня успешно собраны')
+        second, nextDate = Timer.CalculationWaitTime()
+        
+        print(f'Ожидание до {nextDate}')
+        time.sleep(second)
+        
+    except Exception as e:
+        print(f'Ошибка при сборе данных! {e}')
