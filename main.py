@@ -1,5 +1,6 @@
 import json
 import time
+import sys
 
 from shelfcollector import ShelfCollector
 from sqlcontroller import SQLController
@@ -12,6 +13,7 @@ try:
         file.close()
 except Exception as e:
     print(f'Ошибка при чтении ссылки! {e}')
+    sys.exit(1)
 
 Collector = ShelfCollector(parametersDict['url'])
 Timer = TimeController()
