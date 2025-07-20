@@ -42,6 +42,7 @@ class ShelfCollector:
                 'count': spitedStr[-3],
                 'price': spitedStr[-2],
                 'revenue': spitedStr[-1],
+                'date': dataTo,
             }
             
             readyLines.append(line)
