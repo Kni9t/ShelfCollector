@@ -20,7 +20,7 @@ class SQLController():
     def DataInsert(self, dataDict):
         try:
             for line in dataDict:
-                cmd = "INSERT INTO products (name, count, price, revenue) VALUES (?, ?, ?, ?)"
+                cmd = f"INSERT INTO {self.tableName} (name, count, price, revenue) VALUES (?, ?, ?, ?)"
                 self.cursor.execute(cmd, (str(line['name']), int(line['count']), int(line['price']), int(line['revenue'])))
             
             self.connection.commit()
