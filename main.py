@@ -24,9 +24,14 @@ SQL.CreateTable()
 while True:
     try:
         data = Collector.CollectSales()
-        result, err = SQL.DataInsert(data)
-        if not result:
-            print(f'Ошибка при добавлении данных в БД: {err}')
+        
+        if len(data) != 0:
+            result, err = SQL.DataInsert(data)
+            
+            if not result:
+                print(f'Ошибка при добавлении данных в БД: {err}')
+        else:
+            print(f'Данных о продажах за сегодня нету!')
         
         print(f'Данные за сегодня успешно собраны')
         second, nextDate = Timer.CalculationWaitTime()

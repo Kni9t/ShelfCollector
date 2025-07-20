@@ -18,6 +18,10 @@ class ShelfCollector:
         table = soup.find('table', class_='table table-bordered', id='rows')
 
         row = str(table).split('<tr>')
+        
+        if len(row) == 0:
+            return {}
+        
         row.pop(0)
         row.pop(0)
         row.pop(-1)
