@@ -8,10 +8,10 @@ class ShelfCollector:
         self.urlPart = urlPart
     
     def CollectSales(self):
-        dataFrom = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-        dataTo = datetime.now().strftime('%Y-%m-%d')
+        dateFrom = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        dateTo = datetime.now().strftime('%Y-%m-%d')
 
-        url = f'{self.urlPart}&dateFrom={dataFrom}&dateTo={dataTo}'
+        url = f'{self.urlPart}&dateFrom={dateFrom}&dateTo={dateTo}'
 
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -42,7 +42,7 @@ class ShelfCollector:
                 'count': spitedStr[-3],
                 'price': spitedStr[-2],
                 'revenue': spitedStr[-1],
-                'date': dataTo,
+                'date': dateTo,
             }
             
             readyLines.append(line)
