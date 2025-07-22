@@ -9,7 +9,7 @@ class SQLController():
     def CreateTable(self, tableName = 'sales'):
         try:
             self.tableName = tableName
-            cmd = f"CREATE TABLE IF NOT EXISTS {tableName} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, count INTEGER, price INTEGER, revenue INTEGER, date TEXT)"
+            cmd = f"CREATE TABLE IF NOT EXISTS {tableName} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, count INTEGER, revenue INTEGER, date TEXT)"
             self.cursor.execute(cmd)
             
             return True, ''
@@ -20,8 +20,8 @@ class SQLController():
     def DataInsert(self, dataDict):
         try:
             for line in dataDict:
-                cmd = f"INSERT INTO {self.tableName} (name, count, price, revenue, date) VALUES (?, ?, ?, ?, ?)"
-                self.cursor.execute(cmd, (str(line['name']), int(line['count']), int(line['price']), int(line['revenue']), str(line['date'])))
+                cmd = f"INSERT INTO {self.tableName} (name, count, revenue, date) VALUES (?, ?, ?, ?)"
+                self.cursor.execute(cmd, (str(line['name']), int(line['count']), int(line['revenue']), str(line['date'])))
             
             self.connection.commit()
             return True, ''
