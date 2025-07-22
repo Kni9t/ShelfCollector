@@ -5,11 +5,21 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 
+from jsoncontroller import JsonController
+
 class ShelfCollector:
     def __init__(self, urlPart, gmailLogin, gmailPass):
         self.urlPart = urlPart
         self.gmailLogin = gmailLogin
         self.gmailPass = gmailPass
+        self.js = JsonController('buf_shelf_info.txt')
+        
+        bufDate = {
+            "polks": "None",
+            "fox": "None"
+        }
+        
+        # self.js.writeData(bufDate)
     
     def CollectSalesPolks(self):
         imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
@@ -47,6 +57,13 @@ class ShelfCollector:
             rows = str(tables[9]).split('</tr>')
             rows = rows[4:-2]
             
+            oldPolksDate = dict(self.js.getData())["polks"]
+            
+            if (oldPolksDate == 'None'):
+                previousDate = datetime.strptime('2000-01-01', '%Y-%m-%d')
+            else:
+                previousDate = datetime.strptime(oldPolksDate, '%Y-%m-%d')
+                
             lastDate = None
             
             for line in rows:
@@ -58,6 +75,9 @@ class ShelfCollector:
                 if (re.search(r'\b(\d{2})\.(\d{2})\.(\d{4})\b', spitedStr[0])):
                     date_obj = datetime.strptime(spitedStr[0], '%d.%m.%Y')
                     lastDate = date_obj.strftime('%Y-%m-%d')
+                    continue
+                
+                if datetime.strptime(lastDate, '%Y-%m-%d') <= previousDate:
                     continue
                 
                 name = ''
@@ -72,6 +92,10 @@ class ShelfCollector:
                 }
                 
                 readyLines.append(bufLine)
+            
+            bufData = dict(self.js.getData())
+            bufData["polks"] = lastDate
+            self.js.writeData(bufData)
             
         imap.logout()
         return readyLines
@@ -89,7 +113,7 @@ class ShelfCollector:
         row = str(table).split('<tr>')
         
         if row[0] == 'None':
-            return {}
+            return []
         
         row.pop(0)
         row.pop(0)
