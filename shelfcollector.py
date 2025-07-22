@@ -11,7 +11,7 @@ class ShelfCollector:
         self.gmailLogin = gmailLogin
         self.gmailPass = gmailPass
     
-    def CollectSales(self, sender_email):
+    def CollectSalesPolks(self, sender_email = 'shop@polkius.ru'):
         imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
         imap.login(self.gmailLogin, self.gmailPass)
         imap.select_folder('INBOX')
@@ -118,3 +118,68 @@ class ShelfCollector:
             readyLines.append(line)
             
         return readyLines
+    
+    def CollectSalesFox(self, sender_email = 'lisyapolka@mail.ru'):
+        imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
+        imap.login(self.gmailLogin, self.gmailPass)
+        imap.select_folder('INBOX')
+
+        query = f'from:{sender_email} has:attachment OR is:important'
+        uids = imap.search(['X-GM-RAW', query])
+        
+        buids = []
+        buids.append(uids[-1])
+        
+        for uid in buids:
+            raw_msg = imap.fetch([uid], ['BODY[]'])[uid][b'BODY[]']
+            message = pyzmail.PyzMessage.factory(raw_msg)
+            
+            subject = message.get_subject()
+            print(f'Заголовок письма {uid}: {subject}')
+
+            if not message.html_part:
+                print(f'Письмо {uid} не содержит HTML')
+                continue
+
+            html = message.html_part.get_payload().decode(message.html_part.charset)
+            soup = BeautifulSoup(html, 'html.parser')
+            tables = soup.find_all('table')
+            
+            if not tables:
+                print(f'Нет таблиц в письме {uid}')
+                continue
+            
+            readyLines = []
+            
+            rows = str(tables[3]).split('</tr>')
+            dateRow = rows[4]
+            rows = rows[5:-2]
+            
+            dateRow = re.sub(r'<.*?>', '', dateRow).strip()
+            dateRow = re.sub(r'\s+', ' ', dateRow).strip()
+            
+            lastDate = datetime.strptime(dateRow.split(' ')[0], '%d.%m.%Y').strftime('%Y-%m-%d')
+            
+            print(lastDate)
+            
+            for line in rows:
+                cleaned_text = re.sub(r'<.*?>', '', line).strip()
+                cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
+
+                spitedStr = cleaned_text.split(' ')
+                
+                name = ''
+                for namePart in spitedStr[1:-4:1]:
+                    name += namePart + ' '
+                
+                bufLine = {
+                    'name': name.strip(),
+                    'count': int(spitedStr[-4]),
+                    'revenue': int(spitedStr[-1]),
+                    'date': lastDate,
+                }
+                
+                readyLines.append(bufLine)
+            
+            imap.logout()
+            return readyLines

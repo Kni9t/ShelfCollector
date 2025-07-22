@@ -25,7 +25,8 @@ while True:
     try:
         dataList = []
         dataList.append(Collector.CollectSalesWolf())
-        dataList.append(Collector.CollectSales('shop@polkius.ru'))
+        dataList.append(Collector.CollectSalesPolks())
+        dataList.append(Collector.CollectSalesFox())
         
         for data in dataList:
             if len(data) != 0:
