@@ -19,7 +19,8 @@ class ShelfCollector:
         if (bufData == {}):
             bufDate = {
                 "polks": "None",
-                "fox": "None"
+                "fox": "None",
+                "wolf": "None"
             }
             self.js.writeData(bufDate)
     
@@ -105,6 +106,16 @@ class ShelfCollector:
     def CollectSalesWolf(self):
         dateFrom = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
         dateTo = datetime.now().strftime('%Y-%m-%d')
+        
+        oldWolfDate = dict(self.js.getData())["wolf"]
+            
+        if (oldWolfDate == 'None'):
+            previousDate = datetime.strptime('2000-01-01', '%Y-%m-%d')
+        else:
+            previousDate = datetime.strptime(oldWolfDate, '%Y-%m-%d')
+            
+        if datetime.strptime(dateTo, '%Y-%m-%d') <= previousDate:
+            return []
 
         url = f'{self.urlPart}&dateFrom={dateFrom}&dateTo={dateTo}'
 
@@ -144,7 +155,11 @@ class ShelfCollector:
             }
             
             readyLines.append(line)
-            
+        
+        bufData = dict(self.js.getData())
+        bufData["wolf"] = dateTo
+        self.js.writeData(bufData)
+        
         return readyLines
     
     def CollectSalesFox(self):
@@ -190,7 +205,15 @@ class ShelfCollector:
             
             lastDate = datetime.strptime(dateRow.split(' ')[0], '%d.%m.%Y').strftime('%Y-%m-%d')
             
-            print(lastDate)
+            oldFoxDate = dict(self.js.getData())["fox"]
+            
+            if (oldFoxDate == 'None'):
+                previousDate = datetime.strptime('2000-01-01', '%Y-%m-%d')
+            else:
+                previousDate = datetime.strptime(oldFoxDate, '%Y-%m-%d')
+            
+            if (datetime.strptime(lastDate, '%Y-%m-%d') <= previousDate):
+                return []
             
             for line in rows:
                 cleaned_text = re.sub(r'<.*?>', '', line).strip()
@@ -210,6 +233,10 @@ class ShelfCollector:
                 }
                 
                 readyLines.append(bufLine)
+            
+            bufData = dict(self.js.getData())
+            bufData["fox"] = lastDate
+            self.js.writeData(bufData)
             
             imap.logout()
             return readyLines
