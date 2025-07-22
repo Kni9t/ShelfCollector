@@ -107,6 +107,8 @@ class ShelfCollector:
         dateFrom = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
         dateTo = datetime.now().strftime('%Y-%m-%d')
         
+        print(f'Обработка сайта: Волчок {dateTo}')
+        
         oldWolfDate = dict(self.js.getData())["wolf"]
             
         if (oldWolfDate == 'None'):
