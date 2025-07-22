@@ -11,10 +11,12 @@ class ShelfCollector:
         self.gmailLogin = gmailLogin
         self.gmailPass = gmailPass
     
-    def CollectSalesPolks(self, sender_email = 'shop@polkius.ru'):
+    def CollectSalesPolks(self):
         imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
         imap.login(self.gmailLogin, self.gmailPass)
         imap.select_folder('INBOX')
+        
+        sender_email = 'shop@polkius.ru'
 
         query = f'from:{sender_email} has:attachment OR is:important'
         uids = imap.search(['X-GM-RAW', query])
@@ -28,7 +30,7 @@ class ShelfCollector:
             message = pyzmail.PyzMessage.factory(raw_msg)
             
             subject = message.get_subject()
-            print(f'Заголовок письма {uid}: {subject}')
+            print(f'Обработка письма: {subject}')
 
             if not message.html_part:
                 print(f'Письмо {uid} не содержит HTML')
@@ -119,10 +121,12 @@ class ShelfCollector:
             
         return readyLines
     
-    def CollectSalesFox(self, sender_email = 'lisyapolka@mail.ru'):
+    def CollectSalesFox(self):
         imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
         imap.login(self.gmailLogin, self.gmailPass)
         imap.select_folder('INBOX')
+        
+        sender_email = 'lisyapolka@mail.ru'
 
         query = f'from:{sender_email} has:attachment OR is:important'
         uids = imap.search(['X-GM-RAW', query])
@@ -135,7 +139,7 @@ class ShelfCollector:
             message = pyzmail.PyzMessage.factory(raw_msg)
             
             subject = message.get_subject()
-            print(f'Заголовок письма {uid}: {subject}')
+            print(f'Обработка письма: {subject}')
 
             if not message.html_part:
                 print(f'Письмо {uid} не содержит HTML')
