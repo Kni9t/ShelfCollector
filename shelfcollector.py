@@ -14,12 +14,14 @@ class ShelfCollector:
         self.gmailPass = gmailPass
         self.js = JsonController('buf_shelf_info.txt')
         
-        bufDate = {
-            "polks": "None",
-            "fox": "None"
-        }
+        bufData = dict(self.js.getData())
         
-        # self.js.writeData(bufDate)
+        if (bufData == {}):
+            bufDate = {
+                "polks": "None",
+                "fox": "None"
+            }
+            self.js.writeData(bufDate)
     
     def CollectSalesPolks(self):
         imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
