@@ -86,7 +86,7 @@ class ShelfCollector:
 
         row = str(table).split('<tr>')
         
-        if len(row) == 0:
+        if row[0] == 'None':
             return {}
         
         row.pop(0)

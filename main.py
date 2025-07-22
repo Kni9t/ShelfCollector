@@ -29,7 +29,7 @@ while True:
         dataList.append(Collector.CollectSalesFox())
         
         for data in dataList:
-            if len(data) != 0:
+            if data != {}:
                 result, err = SQL.DataInsert(data)
                 
                 if not result:
