@@ -88,6 +88,7 @@ class ShelfCollector:
                     name += namePart + ' '
                 
                 bufLine = {
+                    'shelf_id': 1,
                     'name': name,
                     'count': int(spitedStr[-2].replace(',000', '')),
                     'revenue': int(spitedStr[-1].replace(',', '')),
@@ -150,6 +151,7 @@ class ShelfCollector:
                 name += namePart + ' '
             
             line = {
+                'shelf_id': 2,
                 'name': name,
                 'count': spitedStr[-3],
                 'revenue': spitedStr[-1],
@@ -228,6 +230,7 @@ class ShelfCollector:
                     name += namePart + ' '
                 
                 bufLine = {
+                    'shelf_id': 3,
                     'name': name.strip(),
                     'count': int(spitedStr[-4]),
                     'revenue': int(spitedStr[-1]),
