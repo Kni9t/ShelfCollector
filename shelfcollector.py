@@ -87,13 +87,13 @@ class ShelfCollector:
                 for namePart in spitedStr[0:-4:1]:
                     name += namePart + ' '
                 
-                bufLine = {
-                    'shelf_id': 1,
-                    'name': name,
-                    'count': int(spitedStr[-2].replace(',000', '')),
-                    'revenue': int(spitedStr[-1].replace(',', '')),
-                    'date': lastDate,
-                }
+                bufLine = self._createDict(
+                    shelf_id = 1,
+                    name = name,
+                    count = spitedStr[-2].replace(',000', ''),
+                    revenue = spitedStr[-1].replace(',', ''),
+                    date = lastDate,
+                )
                 
                 readyLines.append(bufLine)
             
@@ -150,15 +150,15 @@ class ShelfCollector:
             for namePart in spitedStr[0:-3:1]:
                 name += namePart + ' '
             
-            line = {
-                'shelf_id': 2,
-                'name': name,
-                'count': spitedStr[-3],
-                'revenue': spitedStr[-1],
-                'date': dateTo,
-            }
+            bufLine = self._createDict(
+                shelf_id = 2,
+                name = name,
+                count = spitedStr[-3],
+                revenue = spitedStr[-1],
+                date = dateTo,
+                )
             
-            readyLines.append(line)
+            readyLines.append(bufLine)
         
         bufData = dict(self.js.getData())
         bufData["wolf"] = dateTo
@@ -229,13 +229,13 @@ class ShelfCollector:
                 for namePart in spitedStr[1:-4:1]:
                     name += namePart + ' '
                 
-                bufLine = {
-                    'shelf_id': 3,
-                    'name': name.strip(),
-                    'count': int(spitedStr[-4]),
-                    'revenue': int(spitedStr[-1]),
-                    'date': lastDate,
-                }
+                bufLine = self._createDict(
+                    shelf_id = 3,
+                    name = name,
+                    count = spitedStr[-4],
+                    revenue = spitedStr[-1],
+                    date = lastDate,
+                )
                 
                 readyLines.append(bufLine)
             
@@ -245,3 +245,13 @@ class ShelfCollector:
             
             imap.logout()
             return readyLines
+    
+    def _createDict(self, shelf_id, name, count, revenue, date):
+        bufLine = {
+                    "shelf_id": shelf_id,
+                    "name": name.strip(),
+                    "count": int(count),
+                    "revenue": int(revenue),
+                    "date": date,
+                }
+        return bufLine
