@@ -1,3 +1,4 @@
 __pycache__/
-link.json
+*.json
 sales.db
+buf_shelf_info.txt
