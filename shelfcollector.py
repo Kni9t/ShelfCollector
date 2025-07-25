@@ -166,17 +166,21 @@ class ShelfCollector:
         return readyLines
     
     def CollectSalesFox(self):
-        imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
-        imap.login(self.gmailLogin, self.gmailPass)
-        imap.select_folder('INBOX')
-        
-        sender_email = 'lisyapolka@mail.ru'
+        try:
+            imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
+            imap.login(self.gmailLogin, self.gmailPass)
+            imap.select_folder('INBOX')
+            
+            sender_email = 'lisyapolka@mail.ru'
 
-        query = f'from:{sender_email} has:attachment OR is:important'
-        uids = imap.search(['X-GM-RAW', query])
-        
-        buids = []
-        buids.append(uids[-1])
+            query = f'from:{sender_email} has:attachment OR is:important'
+            uids = imap.search(['X-GM-RAW', query])
+            
+            buids = []
+            buids.append(uids[-1])
+        except Exception as e:
+            print(f'Ошибка подключения к Gmail! - {e}')
+            return []
         
         for uid in buids:
             raw_msg = imap.fetch([uid], ['BODY[]'])[uid][b'BODY[]']
@@ -186,7 +190,7 @@ class ShelfCollector:
             print(f'Обработка письма: {subject}')
 
             if not message.html_part:
-                print(f'Письмо {uid} не содержит HTML')
+                print(f'Письмо: {subject} не содержит HTML')
                 continue
 
             html = message.html_part.get_payload().decode(message.html_part.charset)
@@ -194,7 +198,7 @@ class ShelfCollector:
             tables = soup.find_all('table')
             
             if not tables:
-                print(f'Нет таблиц в письме {uid}')
+                print(f'Таблица не обнаружена в письме: {subject}')
                 continue
             
             readyLines = []
@@ -216,6 +220,7 @@ class ShelfCollector:
                 previousDate = datetime.strptime(oldFoxDate, '%Y-%m-%d')
             
             if (datetime.strptime(lastDate, '%Y-%m-%d') <= previousDate):
+                print(f'Данные из письма: {subject} уже содержатся в БД!')
                 return []
             
             for line in rows:
@@ -241,6 +246,8 @@ class ShelfCollector:
             bufData = dict(self.js.getData())
             bufData["fox"] = lastDate
             self.js.writeData(bufData)
+            
+            print(f'Письмо: {subject} успешно обработано!')
             
             imap.logout()
             return readyLines
