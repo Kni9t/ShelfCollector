@@ -180,6 +180,7 @@ class ShelfCollector:
             previousDate = datetime.strptime(oldWolfDate, '%Y-%m-%d')
             
         if datetime.strptime(dateTo, '%Y-%m-%d') <= previousDate:
+            print(f'Данные с сайта Волчок за {dateTo} уже содержатся в БД!')
             return []
 
         url = f'{self.urlPart}&dateFrom={dateTo}&dateTo={dateTo}'
@@ -191,6 +192,7 @@ class ShelfCollector:
         row = str(table).split('<tr>')
         
         if row[0] == 'None':
+            print(f'Продажи у Волчока за {dateTo} отсутствуют!')
             return []
         
         row.pop(0)
@@ -221,6 +223,8 @@ class ShelfCollector:
                 )
             
             readyLines.append(bufLine)
+            
+        print(f'Данные с сайта Волчок за {dateTo} успешно собраны!')
         
         bufData = dict(self.js.getData())
         bufData["wolf"] = dateTo

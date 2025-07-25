@@ -34,8 +34,6 @@ while True:
                 
                 if not result:
                     print(f'Ошибка при добавлении данных в БД: {err}')
-            else:
-                print(f'Данных о продажах за сегодня нету!')
         
         print(f'Данные за сегодня успешно собраны')
         second, nextDate = Timer.CalculationWaitTime()
