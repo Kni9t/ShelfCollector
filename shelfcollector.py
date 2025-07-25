@@ -25,36 +25,27 @@ class ShelfCollector:
             self.js.writeData(bufDate)
     
     def CollectSalesPolks(self):
-        imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
-        imap.login(self.gmailLogin, self.gmailPass)
-        imap.select_folder('INBOX')
-        
         sender_email = 'shop@polkius.ru'
-
-        query = f'from:{sender_email} has:attachment OR is:important'
-        uids = imap.search(['X-GM-RAW', query])
         
-        buids = []
+        mails = self._GetMessagesFromGmail(sender_email)
+        
         readyLines = []
-        buids.append(uids[-1])
         
-        for uid in buids:
-            raw_msg = imap.fetch([uid], ['BODY[]'])[uid][b'BODY[]']
-            message = pyzmail.PyzMessage.factory(raw_msg)
+        for mail in mails:
+            title = mail.get_subject()
             
-            subject = message.get_subject()
-            print(f'Обработка письма: {subject}')
-
-            if not message.html_part:
-                print(f'Письмо {uid} не содержит HTML')
+            print(f'Обработка письма: {title}')
+            
+            if not mail.html_part:
+                print(f'Письмо: {title} не содержит HTML')
                 continue
-
-            html = message.html_part.get_payload().decode(message.html_part.charset)
+            
+            html = mail.html_part.get_payload().decode(mail.html_part.charset)
             soup = BeautifulSoup(html, 'html.parser')
             tables = soup.find_all('table')
             
             if not tables:
-                print(f'Нет таблиц в письме {uid}')
+                print(f'Нет таблиц в письме: {title}')
                 continue
             
             rows = str(tables[9]).split('</tr>')
@@ -96,73 +87,12 @@ class ShelfCollector:
                 )
                 
                 readyLines.append(bufLine)
-            
-            bufData = dict(self.js.getData())
-            bufData["polks"] = lastDate
-            self.js.writeData(bufData)
-            
-        imap.logout()
-        return readyLines
-    
-    def CollectSalesWolf(self):
-        dateTo = datetime.now().strftime('%Y-%m-%d')
-        
-        print(f'Обработка сайта: Волчок {dateTo}')
-        
-        oldWolfDate = dict(self.js.getData())["wolf"]
-            
-        if (oldWolfDate == 'None'):
-            previousDate = datetime.strptime('2000-01-01', '%Y-%m-%d')
-        else:
-            previousDate = datetime.strptime(oldWolfDate, '%Y-%m-%d')
-            
-        if datetime.strptime(dateTo, '%Y-%m-%d') <= previousDate:
-            return []
-
-        url = f'{self.urlPart}&dateFrom={dateTo}&dateTo={dateTo}'
-
-        response = requests.get(url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        table = soup.find('table', class_='table table-bordered', id='rows')
-
-        row = str(table).split('<tr>')
-        
-        if row[0] == 'None':
-            return []
-        
-        row.pop(0)
-        row.pop(0)
-        row.pop(-1)
-        
-        readyLines = []
-
-        for line in row:
-            cleaned_text = re.sub(r'<.*?>', '', line).strip()
-            cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
-            
-            spitedStr = cleaned_text.split(' ')
-            
-            spitedStr.pop(0)
-            spitedStr.pop(0)
-            
-            name = ''
-            for namePart in spitedStr[0:-3:1]:
-                name += namePart + ' '
-            
-            bufLine = self._createDict(
-                shelf_id = 2,
-                name = name,
-                count = spitedStr[-3],
-                revenue = spitedStr[-1],
-                date = dateTo,
-                )
-            
-            readyLines.append(bufLine)
-        
+            print(f'Письмо: {title} обработано успешно!')
+                
         bufData = dict(self.js.getData())
-        bufData["wolf"] = dateTo
+        bufData["polks"] = lastDate
         self.js.writeData(bufData)
-        
+            
         return readyLines
     
     def CollectSalesFox(self):
@@ -252,6 +182,67 @@ class ShelfCollector:
             imap.logout()
             return readyLines
     
+    def CollectSalesWolf(self):
+        dateTo = datetime.now().strftime('%Y-%m-%d')
+        
+        print(f'Обработка сайта: Волчок {dateTo}')
+        
+        oldWolfDate = dict(self.js.getData())["wolf"]
+            
+        if (oldWolfDate == 'None'):
+            previousDate = datetime.strptime('2000-01-01', '%Y-%m-%d')
+        else:
+            previousDate = datetime.strptime(oldWolfDate, '%Y-%m-%d')
+            
+        if datetime.strptime(dateTo, '%Y-%m-%d') <= previousDate:
+            return []
+
+        url = f'{self.urlPart}&dateFrom={dateTo}&dateTo={dateTo}'
+
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        table = soup.find('table', class_='table table-bordered', id='rows')
+
+        row = str(table).split('<tr>')
+        
+        if row[0] == 'None':
+            return []
+        
+        row.pop(0)
+        row.pop(0)
+        row.pop(-1)
+        
+        readyLines = []
+
+        for line in row:
+            cleaned_text = re.sub(r'<.*?>', '', line).strip()
+            cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
+            
+            spitedStr = cleaned_text.split(' ')
+            
+            spitedStr.pop(0)
+            spitedStr.pop(0)
+            
+            name = ''
+            for namePart in spitedStr[0:-3:1]:
+                name += namePart + ' '
+            
+            bufLine = self._createDict(
+                shelf_id = 2,
+                name = name,
+                count = spitedStr[-3],
+                revenue = spitedStr[-1],
+                date = dateTo,
+                )
+            
+            readyLines.append(bufLine)
+        
+        bufData = dict(self.js.getData())
+        bufData["wolf"] = dateTo
+        self.js.writeData(bufData)
+        
+        return readyLines
+    
     def _createDict(self, shelf_id, name, count, revenue, date):
         bufLine = {
                     "shelf_id": shelf_id,
@@ -261,3 +252,24 @@ class ShelfCollector:
                     "date": date,
                 }
         return bufLine
+    
+    def _GetMessagesFromGmail(self, email, count = 1):
+        imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
+        imap.login(self.gmailLogin, self.gmailPass)
+        imap.select_folder('INBOX')
+        
+        query = f'from:{email} has:attachment OR is:important'
+        uids = imap.search(['X-GM-RAW', query])
+        
+        uids.reverse()
+        
+        messageList = []
+        
+        for uid in uids[:count]:
+            raw_msg = imap.fetch([uid], ['BODY[]'])[uid][b'BODY[]']
+            message = pyzmail.PyzMessage.factory(raw_msg)
+            
+            messageList.append(message)
+            
+        imap.logout()
+        return messageList
