@@ -27,7 +27,7 @@ class ShelfCollector:
     def CollectSalesPolks(self):
         sender_email = 'shop@polkius.ru'
         
-        mails = self._GetMessagesFromGmail(sender_email)
+        mails = self._GetMessagesFromGmail(sender_email, 1)
         
         readyLines = []
         
@@ -98,7 +98,7 @@ class ShelfCollector:
     def CollectSalesFox(self):
         sender_email = 'lisyapolka@mail.ru'
         
-        mails = self._GetMessagesFromGmail(sender_email)
+        mails = self._GetMessagesFromGmail(sender_email, 1)
         
         readyLines = []
         
@@ -242,7 +242,7 @@ class ShelfCollector:
                 }
         return bufLine
     
-    def _GetMessagesFromGmail(self, email, count = 1):
+    def _GetMessagesFromGmail(self, email, count = 0):
         imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
         imap.login(self.gmailLogin, self.gmailPass)
         imap.select_folder('INBOX')
@@ -254,7 +254,10 @@ class ShelfCollector:
         
         messageList = []
         
-        for uid in uids[:count]:
+        if (count > 0):
+            uids = uids[:count]
+        
+        for uid in uids:
             raw_msg = imap.fetch([uid], ['BODY[]'])[uid][b'BODY[]']
             message = pyzmail.PyzMessage.factory(raw_msg)
             
