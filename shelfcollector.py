@@ -105,7 +105,6 @@ class ShelfCollector:
         return readyLines
     
     def CollectSalesWolf(self):
-        dateFrom = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
         dateTo = datetime.now().strftime('%Y-%m-%d')
         
         print(f'Обработка сайта: Волчок {dateTo}')
@@ -120,7 +119,7 @@ class ShelfCollector:
         if datetime.strptime(dateTo, '%Y-%m-%d') <= previousDate:
             return []
 
-        url = f'{self.urlPart}&dateFrom={dateFrom}&dateTo={dateTo}'
+        url = f'{self.urlPart}&dateFrom={dateTo}&dateTo={dateTo}'
 
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
