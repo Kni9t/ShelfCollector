@@ -1,0 +1,16 @@
+[Unit]
+Description=Informer bot service
+After=network.target
+
+[Service]
+User=<username>
+WorkingDirectory=<dirName>/bot
+ExecStart=/usr/local/bin/python3.12 <mainFileName>
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
