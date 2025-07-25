@@ -44,3 +44,9 @@ class SQLController():
             
         except Exception as e:
             return False, e
+    
+    def SendQuery(self, query):
+        self.cursor.execute(query)
+        rows = self.cursor.fetchall()
+        
+        return rows
