@@ -19,7 +19,7 @@ class SQLController():
             self.cursor.execute("SELECT COUNT(*) FROM shelves;")
             
             if (self.cursor.fetchall()[0][0] < 3):
-                self.cursor.execute("INSERT INTO shelves (name) VALUES ('Полкилус');")
+                self.cursor.execute("INSERT INTO shelves (name) VALUES ('Полкиус');")
                 self.cursor.execute("INSERT INTO shelves (name) VALUES ('Волчок');")
                 self.cursor.execute("INSERT INTO shelves (name) VALUES ('Лисья полка');")
                 self.connection.commit()
