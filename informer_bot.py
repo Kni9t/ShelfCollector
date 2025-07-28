@@ -115,7 +115,10 @@ while True:
     try:
         bot.polling(none_stop=True, interval=0)
     except Exception as e:
-        file = open('Error_log.txt', 'a')
-        file.write(f'{datetime.now()} - {e}\n')
+        err = f'{datetime.now()} - Ошибка при работе бота! {e}'
+        
+        with open('error_log.txt', 'a') as file:
+            file.write(err)
+            file.close()
         time.sleep(5)
         continue

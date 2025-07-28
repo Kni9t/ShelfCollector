@@ -2,6 +2,8 @@ import json
 import time
 import sys
 
+from datetime import datetime
+
 from shelfcollector import ShelfCollector
 from sqlcontroller import SQLController
 from timecontroller import TimeController
@@ -12,7 +14,11 @@ try:
         parametersDict = dict(json.load(file))
         file.close()
 except Exception as e:
-    print(f'Ошибка при чтении ссылки! {e}')
+    err = f'{datetime.now()} - Ошибка при чтении ссылки! {e}'
+        
+    with open('error_log.txt', 'a') as file:
+        file.write(err)
+        file.close()
     sys.exit(1)
 
 Collector = ShelfCollector(parametersDict['url'], parametersDict['glogin'], parametersDict['gpass'])
@@ -42,4 +48,8 @@ while True:
         time.sleep(second)
         
     except Exception as e:
-        print(f'Ошибка при сборе данных! {e}')
+        err = f'{datetime.now()} - Ошибка при сборе данных! {e}'
+        
+        with open('error_log.txt', 'a') as file:
+            file.write(err)
+            file.close()
