@@ -9,8 +9,8 @@ from openpyxl import load_workbook
 from io import BytesIO
 import pandas as pd
 
-from sqlcontroller import SQLController
-from jsoncontroller import JsonController
+from sql_controller import SQLController
+from json_controller import JsonController
 
 parametersDict = {}
 try:

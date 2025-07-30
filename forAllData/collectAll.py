@@ -1,6 +1,6 @@
 import json
 
-from sqlcontroller import SQLController
+from sql_controller import SQLController
 
 fileNames = ['wolf_all_data.json', 'fox_all_data.json', 'polk_all_data.json']
 

@@ -7,8 +7,8 @@ import sys
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
-from sqlcontroller import SQLController
-from jsoncontroller import JsonController
+from sql_controller import SQLController
+from json_controller import JsonController
 
 parametersDict = {}
 try:

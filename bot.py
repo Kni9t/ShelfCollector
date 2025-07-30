@@ -4,7 +4,7 @@ import sys
 import json
 from datetime import datetime, timedelta
 
-from sqlcontroller import SQLController
+from sql_controller import SQLController
 
 class Bot:
     def __init__(self, keyFileName = 'key.json'):

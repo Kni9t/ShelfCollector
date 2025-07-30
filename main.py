@@ -4,9 +4,9 @@ import sys
 
 from datetime import datetime
 
-from shelfcollector import ShelfCollector
-from sqlcontroller import SQLController
-from timecontroller import TimeController
+from shelf_collector import ShelfCollector
+from sql_controller import SQLController
+from time_controller import TimeController
 
 parametersDict = {}
 try:

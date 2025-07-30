@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
 
-from jsoncontroller import JsonController
+from json_controller import JsonController
 
 class ShelfCollector:
     def __init__(self, urlPart, gmailLogin, gmailPass):
