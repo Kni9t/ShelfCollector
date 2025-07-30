@@ -168,7 +168,7 @@ class ShelfCollector:
         return readyLines
     
     def CollectSalesWolf(self):
-        dateTo = datetime.now().strftime('%Y-%m-%d')
+        dateTo = (datetime.now() - timedelta(days = 1)).strftime('%Y-%m-%d')
         
         print(f'Обработка сайта: Волчок {dateTo}')
         
