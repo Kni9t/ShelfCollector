@@ -163,8 +163,3 @@ class Bot:
             
     def Run(self):
         self.bot.polling(none_stop=True, interval=0)
-
-if __name__ == "__main__":
-    bot = Bot()
-    
-    bot.Run()

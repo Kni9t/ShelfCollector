@@ -17,7 +17,7 @@ except Exception as e:
     err = f'{datetime.now()} - Ошибка при чтении ссылки! {e}'
         
     with open('error_log.txt', 'a') as file:
-        file.write(err)
+        file.write(err + '\n')
         file.close()
     sys.exit(1)
 
@@ -50,6 +50,6 @@ while True:
     except Exception as e:
         err = f'{datetime.now()} - Ошибка при сборе данных! {e}'
         
-        with open('error_log.txt', 'a') as file:
-            file.write(err)
+        with open('error_log.txt', 'a', encoding = 'utf-8') as file:
+            file.write(err + '\n')
             file.close()

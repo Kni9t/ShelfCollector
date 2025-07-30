@@ -14,6 +14,6 @@ while True:
         err = f'{datetime.now()} - Ошибка при работе бота! {e}'
         
         with open('error_log.txt', 'a') as file:
-            file.write(err)
+            file.write(err + '\n')
             file.close()
         time.sleep(5)
