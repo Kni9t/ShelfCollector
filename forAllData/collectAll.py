@@ -13,6 +13,6 @@ for name in fileNames:
         
 SQL = DBController()
 
-SQL.CreateTable()
+SQL.InitMainTables()
 
 SQL.DataInsert(resultList)

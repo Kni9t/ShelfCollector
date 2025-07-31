@@ -25,7 +25,7 @@ Collector = ShelfCollector(parametersDict['url'], parametersDict['glogin'], para
 Timer = TimeController()
 SQL = DBController()
 
-SQL.CreateTable()
+SQL.InitMainTables()
 
 while True:
     try:

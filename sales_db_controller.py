@@ -11,7 +11,7 @@ class DBController():
         self.connection = sqlite3.connect(dbFileName)
         self.cursor = self.connection.cursor()
         
-    def CreateTable(self, tableName = 'sales'):
+    def InitMainTables(self, tableName = 'sales'):
         try:
             cmd = f"CREATE TABLE IF NOT EXISTS shelves (shelf_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)"
             self.cursor.execute(cmd)
