@@ -87,7 +87,11 @@ class ShelfCollector:
                 )
                 
                 readyLines.append(bufLine)
-            print(f'Письмо: {title} обработано успешно!')
+            
+            if (len(readyLines) == 0):
+                print(f'Данные из письма: {title} уже содержатся в БД!')
+            else:
+                print(f'Письмо: {title} обработано успешно!')
                 
         bufData = dict(self.js.getData())
         bufData["polks"] = lastDate
