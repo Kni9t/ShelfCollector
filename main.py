@@ -36,10 +36,7 @@ while True:
         
         for data in dataList:
             if data != []:
-                result, err = SQL.DataInsert(data)
-                
-                if not result:
-                    print(f'Ошибка при добавлении данных в БД: {err}')
+                SQL.AddShelfSale(data)
         
         print(f'Данные за сегодня успешно собраны')
         second, nextDate = Timer.CalculationWaitTime()
