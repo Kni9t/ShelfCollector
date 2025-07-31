@@ -49,7 +49,7 @@ class DBController():
     def AddMarketsSale(self, dataDict):
         for line in dataDict:
             cmd = f"INSERT INTO market_sales (market_id, date, time, revenue, cash, sender_id, sender_name) VALUES (?, ?, ?, ?, ?, ?, ?)"
-            self.cursor.execute(cmd, (int(line['market_id']), str(line['date']), str(line['time']), int(line['revenue']), str(line['cash']), int(line['sender_id']), int(line['sender_name'])))
+            self.cursor.execute(cmd, (int(line['market_id']), str(line['date']), str(line['time']), int(line['revenue']), str(line['cash']), str(line['sender_id']), str(line['sender_name'])))
         
         self.connection.commit()
     
