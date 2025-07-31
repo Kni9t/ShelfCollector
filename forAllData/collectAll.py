@@ -1,6 +1,6 @@
 import json
 
-from sql_controller import SQLController
+from sales_db_controller import DBController
 
 fileNames = ['wolf_all_data.json', 'fox_all_data.json', 'polk_all_data.json']
 
@@ -11,7 +11,7 @@ for name in fileNames:
         resultList = resultList + list(json.load(file))
         file.close()
         
-SQL = SQLController()
+SQL = DBController()
 
 SQL.CreateTable()
 

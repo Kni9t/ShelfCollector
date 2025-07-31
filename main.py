@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 
 from shelf_collector import ShelfCollector
-from sql_controller import SQLController
+from sales_db_controller import DBController
 from time_controller import TimeController
 
 parametersDict = {}
@@ -23,7 +23,7 @@ except Exception as e:
 
 Collector = ShelfCollector(parametersDict['url'], parametersDict['glogin'], parametersDict['gpass'])
 Timer = TimeController()
-SQL = SQLController()
+SQL = DBController()
 
 SQL.CreateTable()
 

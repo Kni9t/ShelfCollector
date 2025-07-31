@@ -7,7 +7,7 @@ import sys
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
-from sql_controller import SQLController
+from sales_db_controller import DBController
 from json_controller import JsonController
 
 parametersDict = {}
@@ -19,7 +19,7 @@ except Exception as e:
     print(f'Ошибка при чтении ссылки! {e}')
     sys.exit(1)
 
-SQL = SQLController()
+SQL = DBController()
 js = JsonController('polk_all_data.json')
 
 # печать результатов

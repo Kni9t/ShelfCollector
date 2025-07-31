@@ -5,7 +5,7 @@ import sqlite3
 # Wolf - 2
 # Fox -3
 
-class SQLController():
+class DBController():
     def __init__(self, dbFileName = 'sales.db'):
         self.dbFileName = dbFileName
         self.connection = sqlite3.connect(dbFileName)

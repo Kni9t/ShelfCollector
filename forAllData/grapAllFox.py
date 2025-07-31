@@ -9,7 +9,7 @@ from openpyxl import load_workbook
 from io import BytesIO
 import pandas as pd
 
-from sql_controller import SQLController
+from sales_db_controller import DBController
 from json_controller import JsonController
 
 parametersDict = {}
@@ -21,7 +21,7 @@ except Exception as e:
     print(f'Ошибка при чтении ссылки! {e}')
     sys.exit(1)
 
-SQL = SQLController()
+SQL = DBController()
 js = JsonController('fox_all_data.json')
 
 # печать результатов

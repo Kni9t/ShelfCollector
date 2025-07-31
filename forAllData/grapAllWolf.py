@@ -6,10 +6,10 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import sys
 
-from sql_controller import SQLController
+from sales_db_controller import DBController
 from json_controller import JsonController
 
-SQL = SQLController()
+SQL = DBController()
 js = JsonController('wolf_all_data.json')
 
 end_date = datetime.now()

@@ -4,7 +4,7 @@ import sys
 import json
 from datetime import datetime, timedelta
 
-from sql_controller import SQLController
+from sales_db_controller import DBController
 
 class Bot:
     def __init__(self, keyFileName = 'key.json'):
@@ -70,10 +70,10 @@ class Bot:
     def Get_Stat_For_All_Day_In_Month(self, message):
         date = (datetime.now() - timedelta(days = 1)).strftime('%Y-%m-%d')
         query = f'SELECT sh.name AS shelf_name, SUM(s.revenue) AS total_revenue, s.date FROM sales s join shelves sh on s.shelf_id = sh.shelf_id WHERE s.date = "{date}" GROUP BY sh.name;'
+
+        DB = DBController()
+        rows = DB.SendQuery(query)
         
-        SQL = SQLController()
-        
-        rows = SQL.SendQuery(query)
         resultString = f'Данные на {date}:\n'
         
         if (len(rows) == 0):
@@ -93,9 +93,9 @@ class Bot:
         if (message.text == "По всем дням в этом месяце"):
             date = datetime.now().strftime('%m')
             query = f"SELECT strftime('%m-%d', s.date) AS day, sh.name AS shelf_name, SUM(s.revenue) AS total_revenue, COUNT(*) AS num_sales FROM sales s JOIN shelves sh ON s.shelf_id = sh.shelf_id WHERE strftime('%m', s.date) = '{date}' GROUP BY day, sh.name ORDER BY day, sh.name;"
-            
-            SQL = SQLController()
-            rows = SQL.SendQuery(query)
+
+            DB = DBController()
+            rows = DB.SendQuery(query)
             
             resultString = f'Данные на месяц {date} в формате:\nдень, полка, суммарный доход, число продаж\n\n'
             
@@ -108,8 +108,8 @@ class Bot:
             date = datetime.now().strftime('%Y')
             query = f"SELECT strftime('%Y-%m', s.date) AS month, sh.name AS shelf_name, SUM(s.revenue) AS total_revenue, COUNT(*) AS num_sales FROM sales s JOIN shelves sh ON s.shelf_id = sh.shelf_id WHERE strftime('%Y', s.date) = '{date}' GROUP BY month, sh.name ORDER BY month, sh.name;"
             
-            SQL = SQLController()
-            rows = SQL.SendQuery(query)
+            DB = DBController()
+            rows = DB.SendQuery(query)
             
             resultString = f'Данные на {date} год в формате:\nмесяц, полка, суммарный доход, число продаж\n\n'
             
@@ -122,8 +122,8 @@ class Bot:
         date = datetime.now().strftime('%Y')
         query = f"SELECT shelves.name AS shelf_name, AVG(monthly_revenue) AS average_monthly_revenue FROM ( SELECT shelf_id, strftime('%Y-%m', date) AS month, SUM(revenue) AS monthly_revenue FROM sales WHERE strftime('%Y', date) = '{date}' GROUP BY shelf_id, month ) AS monthly_totals JOIN shelves ON monthly_totals.shelf_id = shelves.shelf_id GROUP BY shelves.name;"
         
-        SQL = SQLController()
-        rows = SQL.SendQuery(query)
+        DB = DBController()
+        rows = DB.SendQuery(query)
         
         resultString = f'В среднем, за месяц в {date} году доход по полкам составил:\n\n'
         totalAverage = 0
