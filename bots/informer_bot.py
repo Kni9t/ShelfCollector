@@ -4,7 +4,7 @@ import sys
 import json
 from datetime import datetime, timedelta
 
-from sales_db_controller import DBController
+from collector.sales_db_controller import DBController
 
 class InformerBot:
     def __init__(self, keyFileName = 'params/key.json'):

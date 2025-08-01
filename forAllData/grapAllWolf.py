@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import sys
 
-from sales_db_controller import DBController
-from json_controller import JsonController
+from collector.sales_db_controller import DBController
+from collector.json_controller import JsonController
 
 SQL = DBController()
 js = JsonController('wolf_all_data.json')

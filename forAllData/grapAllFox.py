@@ -9,12 +9,12 @@ from openpyxl import load_workbook
 from io import BytesIO
 import pandas as pd
 
-from sales_db_controller import DBController
-from json_controller import JsonController
+from collector.sales_db_controller import DBController
+from collector.json_controller import JsonController
 
 parametersDict = {}
 try:
-    with open('parameters.json') as file:
+    with open('params/parameters.json') as file:
         parametersDict = dict(json.load(file))
         file.close()
 except Exception as e:

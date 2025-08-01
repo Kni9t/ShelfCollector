@@ -1,6 +1,6 @@
 import json
 
-from sales_db_controller import DBController
+from collector.sales_db_controller import DBController
 
 fileNames = ['wolf_all_data.json', 'fox_all_data.json', 'polk_all_data.json']
 

@@ -4,19 +4,19 @@ import sys
 
 from datetime import datetime
 
-from shelf_collector import ShelfCollector
-from sales_db_controller import DBController
-from time_controller import TimeController
+from collector.shelf_collector import ShelfCollector
+from collector.sales_db_controller import DBController
+from collector.time_controller import TimeController
 
 parametersDict = {}
 try:
-    with open('parameters.json') as file:
+    with open('params/parameters.json') as file:
         parametersDict = dict(json.load(file))
         file.close()
 except Exception as e:
     err = f'{datetime.now()} - Ошибка при чтении ссылки! {e}'
         
-    with open('error_log.txt', 'a', encoding = 'utf-8') as file:
+    with open('collector_error_log.txt', 'a', encoding = 'utf-8') as file:
         file.write(err + '\n')
         file.close()
     sys.exit(1)
@@ -47,6 +47,6 @@ while True:
     except Exception as e:
         err = f'{datetime.now()} - Ошибка при сборе данных! {e}'
         
-        with open('error_log.txt', 'a', encoding = 'utf-8') as file:
+        with open('collector_error_log.txt', 'a', encoding = 'utf-8') as file:
             file.write(err + '\n')
             file.close()
