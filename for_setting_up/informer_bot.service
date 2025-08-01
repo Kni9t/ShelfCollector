@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 User=<username>
-WorkingDirectory=<dirName>/bot
-ExecStart=/usr/local/bin/python3.12 <mainFileName>
+WorkingDirectory=<dirName>
+ExecStart=/usr/local/bin/python3.12 <dirName>/main_bot.py
 Restart=always
 RestartSec=5
 StandardOutput=journal
