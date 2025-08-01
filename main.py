@@ -14,7 +14,7 @@ try:
         parametersDict = dict(json.load(file))
         file.close()
 except Exception as e:
-    err = f'{datetime.now()} - Ошибка при чтении ссылки! {e}'
+    err = f'{datetime.now()} - Ошибка при загрузке параметров! {e}'
         
     with open('collector_error_log.txt', 'a', encoding = 'utf-8') as file:
         file.write(err + '\n')

@@ -7,14 +7,9 @@ from datetime import datetime, timedelta
 from collector.sales_db_controller import DBController
 
 class InformerBot:
-    def __init__(self, keyFileName = 'params/key.json'):
-        try:
-            with open(keyFileName) as file:
-                self.parameters = dict(json.load(file))
-                file.close()
-        except Exception as e:
-            print(f'Ошибка при чтении ссылки! {e}')
-            sys.exit(1)
+    def __init__(self, parameters: dict):
+        
+        self.parameters = parameters
             
         self.DetailList = [
             "По всем дням в этом месяце",

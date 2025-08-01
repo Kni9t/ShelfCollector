@@ -1,0 +1,9 @@
+{
+    "url": "url for wolf-web",
+    "glogin": "gmail address",
+    "gpass": "gmail service pass",
+    "key": "key for informer bot",
+    "admins": [
+        "id lists for informer bot"
+    ]
+}
