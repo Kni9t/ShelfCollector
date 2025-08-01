@@ -10,6 +10,11 @@ try:
     with open('params/parameters.json') as file:
         parametersDict = dict(json.load(file))
         file.close()
+    
+    with open('params/buttons_list.json', encoding = 'utf-8') as file:
+        buttons_list = dict(json.load(file))
+        file.close()    
+    
 except Exception as e:
     err = f'{datetime.now()} - Ошибка при загрузке параметров! {e}'
         
@@ -18,7 +23,7 @@ except Exception as e:
         file.close()
     sys.exit(1)
 
-TelegramBot = InformerBot(parametersDict)
+TelegramBot = InformerBot(parametersDict, buttons_list)
 
 while True:
     try:

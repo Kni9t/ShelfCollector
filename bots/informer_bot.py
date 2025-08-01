@@ -7,14 +7,12 @@ from datetime import datetime, timedelta
 from collector.sales_db_controller import DBController
 
 class InformerBot:
-    def __init__(self, parameters: dict):
+    def __init__(self, parameters: dict, buttonsList: dict):
         
         self.parameters = parameters
-            
-        self.DetailList = [
-            "По всем дням в этом месяце",
-            "По всем месяцам в этом году"
-            ]
+        self.ButtonsList = buttonsList
+        
+        self.ButtonsList['MainMenuButtonList']
         
         self.bot = telebot.TeleBot(self.parameters['key'])
         
@@ -25,13 +23,7 @@ class InformerBot:
         
     def StartCommand(self, message):
         if (self.CheckAllowUsers(message, self.parameters['admins'])):
-            buttonList = [
-            "Получить информацию о продажах за прошлый день",
-            "Получить детализацию",
-            "Получить средний ежемесячный доход за этот год"
-            ]
-            
-            self.SendMessage(message, f'Приветствую, {message.from_user.first_name}! Чем я могу помочь сегодня?', buttonList)
+            self.SendMessage(message, f'Приветствую, {message.from_user.first_name}! Чем я могу помочь сегодня?', self.ButtonsList['MainMenuButtonList'])
             
         else:
             self.SendMessage(message, 'Приветствую! Я для получения служебной информации! Если вы не знаете что со мной делать, то это значит, что я предназначен не для вас, спасибо за внимание!', [])
@@ -42,14 +34,9 @@ class InformerBot:
                 self.Get_Stat_For_All_Day_In_Month(message)
                 
             elif (message.text == "Получить детализацию"):
-                listCommand = [
-                    "По всем дням в этом месяце",
-                    "По всем месяцам в этом году"
-                    ]
+                self.SendMessage(message, f"Какую детализацию вы хотели бы получить?", self.ButtonsList['DetailButtonList'])
                 
-                self.SendMessage(message, f"Какую детализацию вы хотели бы получить?", listCommand)
-                
-            elif (message.text in self.DetailList):
+            elif (message.text in self.ButtonsList['DetailButtonList']):
                 self.Get_Detail(message)
                 
             elif (message.text == "Получить средний ежемесячный доход за этот год"):
@@ -76,13 +63,8 @@ class InformerBot:
         else:
             for row in rows:
                 resultString += f'{row[0]} - {row[1]} руб.\n'
-            
-        buttonList = [
-            "Получить информацию о продажах за прошлый день",
-            "Получить детализацию"
-            ]
-            
-        self.SendMessage(message, f'{resultString}', buttonList)
+                
+        self.SendMessage(message, f'{resultString}', self.ButtonsList['MainMenuButtonList'])
     
     def Get_Detail(self, message):
         if (message.text == "По всем дням в этом месяце"):
@@ -97,7 +79,7 @@ class InformerBot:
             for row in rows:
                 resultString += f'{row[0]} - {row[1]} - {row[2]} руб. - {row[3]} шт.\n'
                 
-            self.SendMessage(message, f'{resultString}', [])
+            self.SendMessage(message, f'{resultString}', self.ButtonsList['MainMenuButtonList'])
         
         elif (message.text == "По всем месяцам в этом году"):
             date = datetime.now().strftime('%Y')
@@ -111,7 +93,7 @@ class InformerBot:
             for row in rows:
                 resultString += f'{row[0]} - {row[1]} - {row[2]} руб. - {row[3]} шт.\n'
                 
-            self.SendMessage(message, f'{resultString}', [])
+            self.SendMessage(message, f'{resultString}', self.ButtonsList['MainMenuButtonList'])
     
     def Get_average_monthly_income(self, message):
         date = datetime.now().strftime('%Y')
@@ -129,7 +111,7 @@ class InformerBot:
             
         resultString += f'\nПо всем полкам суммарно: {round(totalAverage, 2)} руб.'
         
-        self.SendMessage(message, f'{resultString}', [])
+        self.SendMessage(message, f'{resultString}', self.ButtonsList['MainMenuButtonList'])
     
     # Bots function
       
