@@ -2,7 +2,7 @@ import time
 
 from datetime import datetime
 
-from informer_bot import InformerBot
+from bots.informer_bot import InformerBot
 
 TelegramBot = InformerBot()
 
