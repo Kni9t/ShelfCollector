@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime
 
-import json_controller as JC
+from collector.json_controller import JsonController
 
 '''
 '1234536': {
@@ -12,7 +12,7 @@ import json_controller as JC
     }
 '''
 
-class StateController(JC.jsonController):
+class StateController(JsonController):
     def SetUserStats(self, idUser, stats, value):
         dateFromFiles = self.getDate()
         change = False
