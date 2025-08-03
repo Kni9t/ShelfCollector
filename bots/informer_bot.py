@@ -32,13 +32,47 @@ class InformerBot:
         if (message.text == "Получить информацию о продажах по полкам") and self.CheckAllowUsers(message, self.parameters['admins']):
             self.SendMessage(message, f"Какую детализацию вы хотели бы получить?", self.ButtonsList['DetailShelfButtonList'])
             
+        elif (message.text != '') and (self.StateController.GetUserAuthorizationState(message.chat.id)):
+            self.Complete_Market_Authorization(message)
+            
         elif (message.text in self.ButtonsList['DetailShelfButtonList']) and self.CheckAllowUsers(message, self.parameters['admins']):
             self.Get_Shelf_Detail(message)
             
+        elif (message.text == "Начать сбор данных о продажах"):
+            if self.CheckAllowUsers(message, self.parameters['admins']):
+                self.SendMessage(message, f"Вы хотите добавить маркет?", self.ButtonsList['AdminBeginMarketSalesButtonList'])
+            else:
+                self.Begin_Market_Authorization(message)
+                
+        elif (message.text == "Зарегистрировать новый маркет") and self.CheckAllowUsers(message, self.parameters['admins']):
+            self.Add_New_market(message)
+        
+        elif (message.text == "Указать маркет для сбора продаж") and self.CheckAllowUsers(message, self.parameters['admins']):
+            self.Begin_Market_Authorization(message)
+        
         else:
             self.SendMessage(message, "Я не знаю такой команды! Вы можете перезапустить меня, если что-то пошло не так!", [])
     
     # Primary function
+    
+    def Add_New_market(self, message):
+        pass
+    
+    def Begin_Market_Authorization(self, message):
+        self.StateController.SetUserStats(message.chat.id, 'salesCollectState', False)
+        self.StateController.SetUserStats(message.chat.id, 'authorizationState', True)
+        
+        self.SendMessage(message, "Хорошо, сперва необходимо указать для какого маркета регистрировать продажи.")
+        self.SendMessage(message, "Если необходимо, вы можете перезапустить бота с помощью кнопки start.")
+        self.SendMessage(message, "Пожалуйста напишите в чат уникальный ID маркета:", [])
+        
+    def Complete_Market_Authorization(self, message):
+        self.StateController.SetUserStats(message.chat.id, 'authorizationState', False)
+        self.StateController.SetUserStats(message.chat.id, 'selectedMarket', str(message.text))
+        self.SendMessage(message, f"Выбран маркет: {message.text}", [])
+    
+    def Start_Collect_Market_Sales(self, message):
+        pass
     
     def Get_Shelf_Detail(self, message):
         if (message.text == "Продажи по всем дням в этом месяце"):
