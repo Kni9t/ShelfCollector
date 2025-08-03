@@ -16,9 +16,9 @@ try:
         file.close()    
     
 except Exception as e:
-    err = f'{datetime.now()} - Ошибка при загрузке параметров! {e}'
+    err = f'{datetime.now()} - Ошибка при запуске бота! {e}'
         
-    with open('collector_error_log.txt', 'a', encoding = 'utf-8') as file:
+    with open('bot_error_log.txt', 'a', encoding = 'utf-8') as file:
         file.write(err + '\n')
         file.close()
     sys.exit(1)
