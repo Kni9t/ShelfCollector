@@ -14,7 +14,8 @@ from collector.json_controller import JsonController
 
 class StateController(JsonController):
     def SetUserStats(self, idUser, stats, value):
-        dateFromFiles = self.getDate()
+        idUser = str(idUser)
+        dateFromFiles = self.getData()
         change = False
 
         for id in dateFromFiles:
@@ -30,10 +31,11 @@ class StateController(JsonController):
             }
             dateFromFiles[idUser][stats] = value
         
-        self.writeDate(dateFromFiles)
+        self.writeData(dateFromFiles)
 
     def GetUserAuthorizationState(self, idUser):
-        dateFromFiles = self.getDate()
+        idUser = str(idUser)
+        dateFromFiles = self.getData()
 
         for id in dateFromFiles:
             if (id == idUser):
@@ -42,7 +44,8 @@ class StateController(JsonController):
         return None
             
     def GetUsersMarket(self, idUser):
-        dateFromFiles = self.getDate()
+        idUser = str(idUser)
+        dateFromFiles = self.getData()
 
         for id in dateFromFiles:
             if (id == idUser):
@@ -51,8 +54,9 @@ class StateController(JsonController):
         return None
     
     def GetSalesCollectState(self, idUser):
-        dateFromFiles = self.getDate()
-
+        idUser = str(idUser)
+        dateFromFiles = self.getData()
+        
         for id in dateFromFiles:
             if (id == idUser):
                 return dateFromFiles[id]['salesCollectState']
@@ -61,10 +65,10 @@ class StateController(JsonController):
         
     def AddNewUser(self, date):
         if (os.path.isfile(self.fileName)):
-            dateFromFiles = self.getDate()
+            dateFromFiles = self.getData()
             for key in date:
-                dateFromFiles[str(key)] = date[str(key)]
+                dateFromFiles[int(key)] = date[int(key)]
                 
             self.writeData()
         else:
-            self.writeDate(date)
+            self.writeData(date)
