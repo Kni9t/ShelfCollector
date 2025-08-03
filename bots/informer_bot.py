@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timedelta
 
 from collector.sales_db_controller import DBController
+from collector.state_controller import StateController
 
 class InformerBot:
     def __init__(self, parameters: dict, buttonsList: dict):
