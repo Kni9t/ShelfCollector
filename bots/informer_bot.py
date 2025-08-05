@@ -34,7 +34,7 @@ class InformerBot:
         if (message.text == "Получить информацию о продажах по полкам") and self.CheckAllowUsers(message, self.parameters['admins']):
             self.SendMessage(message, f"Какую детализацию вы хотели бы получить?", self.ButtonsList['DetailShelfButtonList'])
             
-        elif (message.text != '') and (self.StateController.GetUserAuthorizationState(message.chat.id)):
+        elif (message.text != '') and (self.StateController.GetState(message.chat.id, 'authorizationState')):
             self.Complete_Market_Authorization(message)
             
         elif (message.text in self.ButtonsList['DetailShelfButtonList']) and self.CheckAllowUsers(message, self.parameters['admins']):
@@ -47,7 +47,7 @@ class InformerBot:
                 self.Begin_Market_Authorization(message)
                 
         elif (message.text == "Зарегистрировать новый маркет") and self.CheckAllowUsers(message, self.parameters['admins']):
-            self.Add_New_market(message)
+            self.Begin_Add_New_Market(message)
         
         elif (message.text == "Выбрать маркет") and self.CheckAllowUsers(message, self.parameters['admins']):
             self.Begin_Market_Authorization(message)
@@ -57,7 +57,10 @@ class InformerBot:
     
     # Primary function
     
-    def Add_New_market(self, message):
+    def Begin_Add_New_Market(self, message):
+        pass
+    
+    def Add_New_Market(self, message):
         pass
     
     def Begin_Market_Authorization(self, message):

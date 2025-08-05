@@ -8,6 +8,7 @@ from collector.json_controller import JsonController
 '1234536': {
         'authorizationState': False,
         'salesCollectState': False,
+        'addNewMarket': False,
         'selectedMarket': 'market name' or None
     }
 '''
@@ -27,6 +28,7 @@ class StateController(JsonController):
             dateFromFiles[idUser] = {
                 'authorizationState': False,
                 'salesCollectState': False,
+                'addNewMarket': False,
                 'selectedMarket': None
             }
             dateFromFiles[idUser][stats] = value
@@ -36,34 +38,15 @@ class StateController(JsonController):
     def ResetAllState(self, idUser):
         self.SetUserStats(idUser, 'authorizationState', False)
         self.SetUserStats(idUser, 'salesCollectState', False)
-
-    def GetUserAuthorizationState(self, idUser):
-        idUser = str(idUser)
-        dateFromFiles = self.getData()
-
-        for id in dateFromFiles:
-            if (id == idUser):
-                return dateFromFiles[id]['authorizationState']
-            
-        return None
-            
-    def GetUsersMarket(self, idUser):
-        idUser = str(idUser)
-        dateFromFiles = self.getData()
-
-        for id in dateFromFiles:
-            if (id == idUser):
-                return dateFromFiles[id]['selectedMarket']
-        
-        return None
+        self.SetUserStats(idUser, 'addNewMarket', False)
     
-    def GetSalesCollectState(self, idUser):
+    def GetState(self, idUser, state):
         idUser = str(idUser)
         dateFromFiles = self.getData()
         
         for id in dateFromFiles:
             if (id == idUser):
-                return dateFromFiles[id]['salesCollectState']
+                return dateFromFiles[id][state]
             
         return None
         
