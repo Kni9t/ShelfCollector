@@ -40,9 +40,14 @@ class DBController():
         self.connection.commit()
         
     def AddMarkets(self, dataDict):
-        for line in dataDict:
-            cmd = f"INSERT INTO markets (hash, name, start_date, end_date, location) VALUES (?, ?, ?, ?)"
-            self.cursor.execute(cmd, (str(line['hash']), str(line['name']), str(line['start_date']), str(line['end_date']), str(line['location'])))
+        cmd = f"INSERT INTO markets (hash, name, start_date, end_date, location) VALUES (?, ?, ?, ?, ?)"
+        
+        if (type(dataDict) is list):
+            for line in dataDict:
+                self.cursor.execute(cmd, (str(line['hash']), str(line['name']), str(line['start_date']), str(line['end_date']), str(line['location'])))
+                
+        elif (type(dataDict) is dict):
+            self.cursor.execute(cmd, (str(dataDict['hash']), str(dataDict['name']), str(dataDict['start_date']), str(dataDict['end_date']), str(dataDict['location'])))
         
         self.connection.commit()
         

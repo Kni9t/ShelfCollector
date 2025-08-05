@@ -1,7 +1,7 @@
 import telebot
 from telebot import types
-import sys
-import json
+import hashlib
+import re
 from datetime import datetime, timedelta
 
 from collector.sales_db_controller import DBController
@@ -61,10 +61,56 @@ class InformerBot:
     # Primary function
     
     def Begin_Add_New_Market(self, message):
-        pass
+        self.StateController.ResetAllState(message.chat.id)
+        self.StateController.SetUserStats(message.chat.id, 'addNewMarket', True)
+        
+        self.SendMessage(message, "Введите название маркета и его дату проведения. Формат записи следующий:")
+        self.SendMessage(message, "Название маркета <,> дата проведения в формате 2025-07-20-12:00 <,> дата окончания в формате 2025-07-20-12:00")
+        self.SendMessage(message, "Пример: `Название маркета, 2025-07-20-12:00, 2025-07-20-12:00`")
     
     def Add_New_Market(self, message):
-        pass
+        data = []
+        newMarket = {}
+        start_date = ''
+        end_date = ''
+        
+        for dat in message.text.lower().split(','):
+            data.append(re.sub(r'\s+', ' ', dat).strip())
+        
+        try:
+            start_date = datetime.strptime(data[1], "%Y-%m-%d-%H:%M")
+        except Exception as e:
+            self.SendMessage(message, f"Некорректный формат даты начала маркета! Ожидался формат: `2025-07-20-12:00` {e}")
+            
+        try:
+            end_date = datetime.strptime(data[2], "%Y-%m-%d-%H:%M")
+        except Exception as e:
+            self.SendMessage(message, f"Некорректный формат даты окончания маркета! Ожидался формат: `2025-07-20-12:00` {e}")
+        
+        try:
+            newMarket['hash'] = str(hashlib.sha256(str(datetime.now()).encode()).hexdigest()[:10])
+            newMarket['name'] = data[0]
+            newMarket['start_date'] = str(start_date.strftime('%Y-%m-%d %H:%M'))
+            newMarket['end_date'] = str(end_date.strftime('%Y-%m-%d %H:%M'))
+            newMarket['location'] = str(None)
+        except Exception as e:
+            self.SendMessage(message, f"Неожиданная ошибка при попытке преобразовать данные о маркете! Обратитесь к администратору!")
+            self.SendMessage(message, f"{e}", [])
+            
+        try:
+            DB = DBController()
+            DB.AddMarkets(newMarket)
+            
+        except Exception as e:
+            msg = "Ошибка при добавлении маркета в базу данных!"
+            with open('bot_error_log.txt', 'a', encoding = 'utf-8') as file:
+                file.write(msg + f' {e}' + '\n')
+                file.close()
+            
+            self.SendMessage(message, msg, [])
+            
+        self.StateController.ResetAllState(message.chat.id)        
+        self.SendMessage(message, f"Вы успешно добавили маркет {newMarket['name']}!\n\nЕго уникальный код: `{newMarket['hash']}`", [])
     
     def Begin_Market_Authorization(self, message):
         self.StateController.ResetAllState(message.chat.id)
