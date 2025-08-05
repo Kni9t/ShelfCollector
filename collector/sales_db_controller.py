@@ -63,14 +63,14 @@ class DBController():
         return None
         
     def GetAllMarketsHash(self):
-        self.cursor.execute(f"SELECT id, hash, name FROM markets")
+        self.cursor.execute(f"SELECT market_id, hash, name FROM markets")
         rows = self.cursor.fetchall()
         
         output = []
     
         for row in rows:
             output.append({
-                "id": row[0],
+                "market_id": row[0],
                 "hash": row[1],
                 "name": row[2]
             })
