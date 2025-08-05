@@ -32,6 +32,10 @@ class StateController(JsonController):
             dateFromFiles[idUser][stats] = value
         
         self.writeData(dateFromFiles)
+        
+    def ResetAllState(self, idUser):
+        self.SetUserStats(idUser, 'authorizationState', False)
+        self.SetUserStats(idUser, 'salesCollectState', False)
 
     def GetUserAuthorizationState(self, idUser):
         idUser = str(idUser)
