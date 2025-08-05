@@ -23,6 +23,8 @@ class InformerBot:
         print('Бот успешно инициирован!')
         
     def StartCommand(self, message):
+        self.StateController.ResetAllState(message.chat.id)
+                
         if (self.CheckAllowUsers(message, self.parameters['admins'])):
             self.SendMessage(message, f'Приветствую, {message.from_user.first_name}! Чем я могу помочь сегодня?', self.ButtonsList['AdminMainMenuButtonList'])
         else:
@@ -47,7 +49,7 @@ class InformerBot:
         elif (message.text == "Зарегистрировать новый маркет") and self.CheckAllowUsers(message, self.parameters['admins']):
             self.Add_New_market(message)
         
-        elif (message.text == "Указать маркет для сбора продаж") and self.CheckAllowUsers(message, self.parameters['admins']):
+        elif (message.text == "Выбрать маркет") and self.CheckAllowUsers(message, self.parameters['admins']):
             self.Begin_Market_Authorization(message)
         
         else:
@@ -67,9 +69,14 @@ class InformerBot:
         self.SendMessage(message, "Пожалуйста напишите в чат уникальный ID маркета:", [])
         
     def Complete_Market_Authorization(self, message):
-        self.StateController.SetUserStats(message.chat.id, 'authorizationState', False)
-        self.StateController.SetUserStats(message.chat.id, 'selectedMarket', str(message.text))
-        self.SendMessage(message, f"Выбран маркет: {message.text}", [])
+        DB = DBController()
+        
+        if (DB.CheckMarketsHash(str(message.text))):
+            self.StateController.SetUserStats(message.chat.id, 'authorizationState', False)
+            self.StateController.SetUserStats(message.chat.id, 'selectedMarket', str(message.text))
+            self.SendMessage(message, f"Выбран маркет: {message.text}", [])
+        else:
+            self.SendMessage(message, f"Маркет: {message.text} не найден!")
     
     def Start_Collect_Market_Sales(self, message):
         pass
