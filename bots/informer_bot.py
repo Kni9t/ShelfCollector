@@ -58,11 +58,25 @@ class InformerBot:
                 
         elif (message.text == "Зарегистрировать новый маркет") and self.CheckAllowUsers(message, self.parameters['admins']):
             self.Begin_Add_New_Market(message)
+            
+        elif (message.text == "Посмотреть актуальные маркеты") and self.CheckAllowUsers(message, self.parameters['admins']):
+            self.Show_Markets_List(message)
         
         else:
             self.SendMessage(message, "Я не знаю такой команды! Вы можете перезапустить меня, если что-то пошло не так!", [])
     
     # Primary function
+    
+    def Show_Markets_List(self, message):
+        DB = DBController()
+        marketsList = DB.GetAllMarkets()
+        msg = "Список актуальных маркетов:\n"
+        
+        for market in marketsList:
+            msg += f"{market['name'].capitalize()} ID: {market['market_id']} дата проведения: {market['start_date']} код маркета: `{market['hash']}`\n"
+            
+        self.SendMessage(message, f"{msg}", self.ButtonsList['AdminMainMenuButtonList'])
+        
     
     def Collect_Sales(self, message):
         DB = DBController()

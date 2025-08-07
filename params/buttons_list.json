@@ -17,6 +17,7 @@
     ],
     "AdminBeginMarketSalesButtonList": [
         "Зарегистрировать новый маркет",
+        "Посмотреть актуальные маркеты",
         "Ввести код от маркета"
     ],
     "CompleteSelectMarketButtonList": [
