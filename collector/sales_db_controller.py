@@ -77,6 +77,25 @@ class DBController():
             return sales
         return None
     
+    def GetAllMarkets(self):
+        self.cursor.execute(f"SELECT * FROM markets")
+        rows = self.cursor.fetchall()
+        
+        markets = []
+        
+        for row in rows:
+            markets.append({
+                "market_id": int(row[0]),
+                "hash": str(row[1]),
+                "name": str(row[2]),
+                "start_date": str(row[3]),
+                "end_date": str(row[4]),
+                "location": str(row[5])
+            })
+            
+        return markets
+        
+    
     def CheckSalesOwner(self, sale_id: int, user_id: int):
         sales = self.GetMarketSaleById(sale_id)
         if (sales):
