@@ -26,7 +26,7 @@ class DBController():
         cmd = f"CREATE TABLE IF NOT EXISTS markets (market_id INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT, name TEXT, start_date TEXT, end_date TEXT, location TEXT)"
         self.cursor.execute(cmd)
         
-        cmd = f"CREATE TABLE IF NOT EXISTS market_sales (id INTEGER PRIMARY KEY AUTOINCREMENT, market_id INTEGER, date TEXT, time TEXT, revenue INTEGER, cash TEXT, sender_id, sender_name, FOREIGN KEY(market_id) REFERENCES markets(id))"
+        cmd = f"CREATE TABLE IF NOT EXISTS market_sales (id INTEGER PRIMARY KEY AUTOINCREMENT, market_id INTEGER, date TEXT, time TEXT, revenue INTEGER, cash TEXT, sender_id TEXT, sender_name TEXT, FOREIGN KEY(market_id) REFERENCES markets(id))"
         self.cursor.execute(cmd)
         
         cmd = f"CREATE TABLE IF NOT EXISTS sales (id INTEGER PRIMARY KEY AUTOINCREMENT, shelf_id INTEGER, name TEXT, count INTEGER, revenue INTEGER, date TEXT, FOREIGN KEY(shelf_id) REFERENCES shelves(id))"
@@ -51,13 +51,49 @@ class DBController():
         
         self.connection.commit()
         
-    def AddMarketsSale(self, dataDict):
-        for line in dataDict:
-            cmd = f"INSERT INTO market_sales (market_id, date, time, revenue, cash, sender_id, sender_name) VALUES (?, ?, ?, ?, ?, ?, ?)"
-            self.cursor.execute(cmd, (int(line['market_id']), str(line['date']), str(line['time']), int(line['revenue']), str(line['cash']), str(line['sender_id']), str(line['sender_name'])))
+    def AddMarketsSale(self, dataDict: dict):
+        cmd = f"INSERT INTO market_sales (market_id, date, time, revenue, cash, sender_id, sender_name) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        self.cursor.execute(cmd, (int(dataDict['market_id']), str(dataDict['date']), str(dataDict['time']), int(dataDict['revenue']), str(dataDict['cash']), str(dataDict['sender_id']), str(dataDict['sender_name'])))
         
         self.connection.commit()
-        
+        return self.cursor.lastrowid
+    
+    def GetMarketSaleById(self, sale_id: int):
+        if (sale_id >= 0):
+            self.cursor.execute(f"SELECT * FROM market_sales WHERE id = {sale_id}")
+            row = self.cursor.fetchall()[0]
+            
+            sales = {
+                "id": int(row[0]),
+                "market_id": int(row[1]),
+                "date": str(row[2]),
+                "time": str(row[3]),
+                "revenue": int(row[4]),
+                "cash": str(row[5]),
+                "sender_id": int(row[6]),
+                "sender_name": str(row[7]),
+            }
+            
+            return sales
+        return None
+    
+    def CheckSalesOwner(self, sale_id: int, user_id: int):
+        sales = self.GetMarketSaleById(sale_id)
+        if (sales):
+            if (sales['sender_id'] == user_id):
+                return True
+            else:
+                return False
+        return None
+    
+    def RemoveMarketSaleById(self, sale_id: int):
+        if (sale_id >= 0):
+            sales = self.GetMarketSaleById(sale_id)
+            self.cursor.execute(f"DELETE FROM market_sales WHERE id = {sale_id}")
+            self.connection.commit()
+            return sales
+        return None
+    
     def CheckMarketsHash(self, hash):
         marketsList = self.GetAllMarketsHash()
         

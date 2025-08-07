@@ -23,6 +23,7 @@ class InformerBot:
         print('Бот успешно инициирован!')
         
     def StartCommand(self, message):
+        # сообщение об остановке сбора продаж
         self.StateController.ResetAllState(message.chat.id)
                 
         if (self.CheckAllowUsers(message, self.parameters['admins'])):
@@ -40,25 +41,92 @@ class InformerBot:
         elif (message.text != '') and (self.StateController.GetState(message.chat.id, 'addNewMarket')):
             self.Add_New_Market(message)
             
+        elif (message.text != '') and (self.StateController.GetState(message.chat.id, 'salesCollectState')):
+            self.Collect_Sales(message)
+            
+        elif (message.text == "Начать сбор продаж"):
+            self.Begin_Sales_Collect(message)
+            
         elif (message.text in self.ButtonsList['DetailShelfButtonList']) and self.CheckAllowUsers(message, self.parameters['admins']):
             self.Get_Shelf_Detail(message)
             
-        elif (message.text == "Начать сбор данных о продажах"):
-            if self.CheckAllowUsers(message, self.parameters['admins']):
-                self.SendMessage(message, f"Вы хотите добавить маркет?", self.ButtonsList['AdminBeginMarketSalesButtonList'])
-            else:
-                self.Begin_Market_Authorization(message)
+        elif (message.text == "Управление маркетами") and self.CheckAllowUsers(message, self.parameters['admins']):
+            self.SendMessage(message, f"Вы хотите добавить маркет?", self.ButtonsList['AdminBeginMarketSalesButtonList'])
+            
+        elif (message.text == "Ввести код от маркета"):
+            self.Begin_Market_Authorization(message)
                 
         elif (message.text == "Зарегистрировать новый маркет") and self.CheckAllowUsers(message, self.parameters['admins']):
             self.Begin_Add_New_Market(message)
-        
-        elif (message.text == "Выбрать маркет") and self.CheckAllowUsers(message, self.parameters['admins']):
-            self.Begin_Market_Authorization(message)
         
         else:
             self.SendMessage(message, "Я не знаю такой команды! Вы можете перезапустить меня, если что-то пошло не так!", [])
     
     # Primary function
+    
+    def Collect_Sales(self, message):
+        DB = DBController()
+        market = DB.CheckMarketsHash(self.StateController.GetState(message.chat.id, 'selectedMarket'))
+        
+        try:
+            cash = False
+            
+            if (type(message.text) is str):
+                if(message.text.lower()[-1] == 'н'):
+                    bufNum = int(message.text.lower().split('н')[0])
+                    cash = True
+                else:
+                    bufNum = int(message.text)
+            else:
+                bufNum = message.text
+                
+            # market_id INTEGER, date TEXT, time TEXT, revenue INTEGER, cash TEXT, sender_id, sender_name, FOREIGN KEY(market_id) REFERENCES markets(id)
+            if (bufNum > 0):
+                buf_sales = {
+                    "market_id": market['market_id'],
+                    "date": str(datetime.now().strftime('%Y-%m-%d')),
+                    "time": str(datetime.now().strftime('%H:%M:%S')),
+                    "revenue": bufNum,
+                    "cash": cash,
+                    "sender_id": str(message.chat.id),
+                    "sender_name": str(message.from_user.username)
+                }
+                lastID = DB.AddMarketsSale(buf_sales)
+
+                if (buf_sales['cash']):
+                    msgTypeSales = 'Оплата: Наличные'
+                else:
+                    msgTypeSales = 'Оплата: Онлайн перевод'
+                    
+                self.SendMessage(message, f"Продажа зарегистрирована!\nID: {lastID}\nСумма: {buf_sales['revenue']}\n{msgTypeSales}")
+            else:
+                resultChecking = DB.CheckSalesOwner(bufNum * -1, message.chat.id)
+                
+                if (resultChecking is not None):
+                    if(resultChecking):
+                        removedSales = DB.RemoveMarketSaleById(bufNum * -1)
+                        self.SendMessage(message, f"Продажа, зарегистрированная в {removedSales['date']} {removedSales['time']}\nc ID: {removedSales['id']}, на сумму {removedSales['revenue']} успешно удалена!")
+                    else:
+                        self.SendMessage(message, f"У вас нету доступа для удаления данной продажи, так как не вы добавили ее!")
+                else:
+                    self.SendMessage(message, f"Продажи с ID:{bufNum * -1} не существует!")
+        except Exception as e:
+            self.SendMessage(message, "Некорректный формат ввода!\nПожалуйста используйте числа и при необходимости обозначить наличный расчет добавляйте букву 'н' после числа!\nПримеры: '300', '450н', '600Н'", [])
+        
+    def Begin_Sales_Collect(self, message):
+        marketHash = self.StateController.GetState(message.chat.id, 'selectedMarket')
+        DB = DBController()
+        market = DB.CheckMarketsHash(marketHash)
+        
+        if marketHash:
+            self.StateController.ResetAllState(message.chat.id)
+            self.StateController.SetUserStats(message.chat.id, 'salesCollectState', True)
+            
+            self.SendMessage(message, f"Вы успешно запустили сбор данных о продажах для маркета: {market['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.")
+            self.SendMessage(message, 'Все зарегистрированные платежи считаются полученными по переводу. Если необходимо указать, что оплата была произведена наличными добавьте строго после суммы букву заглавную или прописную букву Н.\nНапример так: "600н"\nИли так: "500Н"')
+            self.SendMessage(message, f"Каждой продаже присваивается уникальный ID. Если вы хотите удалить какую-либо продажу, напишите боту ID продажи добавив знак - в начале.", [])
+        else:
+            self.SendMessage(message, "Невозможно внести продажи, так как вы не выбрали маркет!", self.ButtonsList['OfferSelectMarketButtonList'])
     
     def Begin_Add_New_Market(self, message):
         self.StateController.ResetAllState(message.chat.id)
@@ -116,9 +184,7 @@ class InformerBot:
         self.StateController.ResetAllState(message.chat.id)
         self.StateController.SetUserStats(message.chat.id, 'authorizationState', True)
         
-        self.SendMessage(message, "Хорошо, сперва необходимо указать для какого маркета регистрировать продажи.")
-        self.SendMessage(message, "Если необходимо, вы можете перезапустить бота с помощью кнопки start.")
-        self.SendMessage(message, "Пожалуйста напишите в чат уникальный код маркета:", [])
+        self.SendMessage(message, "Вам необходимо указать для какого маркета регистрировать продажи. Для этого отправьте уникальный код маркета в чат.\nЕсли необходимо, вы можете перезапустить бота с помощью кнопки start.", [])
         
     def Complete_Market_Authorization(self, message):
         DB = DBController()
@@ -128,9 +194,9 @@ class InformerBot:
         if (market):
             self.StateController.ResetAllState(message.chat.id)
             self.StateController.SetUserStats(message.chat.id, 'selectedMarket', str(message.text))
-            self.SendMessage(message, f"Выбран маркет: {market['name']}", [])
+            self.SendMessage(message, f"Выбран маркет: {market['name']}\nВы можете начать собирать продажи!", self.ButtonsList['CompleteSelectMarketButtonList'])
         else:
-            self.SendMessage(message, f"Маркет с кодом: {message.text} не найден!")
+            self.SendMessage(message, f"Маркет с кодом: {message.text} не найден! Вы можете попробовать ввести код еще раз:", [])
     
     def Start_Collect_Market_Sales(self, message):
         pass
