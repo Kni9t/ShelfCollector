@@ -109,7 +109,7 @@ class InformerBot:
             
             self.SendMessage(message, msg, [])
             
-        self.StateController.ResetAllState(message.chat.id)        
+        self.StateController.ResetAllState(message.chat.id)
         self.SendMessage(message, f"Вы успешно добавили маркет {newMarket['name']}!\n\nЕго уникальный код: `{newMarket['hash']}`", [])
     
     def Begin_Market_Authorization(self, message):
@@ -118,17 +118,19 @@ class InformerBot:
         
         self.SendMessage(message, "Хорошо, сперва необходимо указать для какого маркета регистрировать продажи.")
         self.SendMessage(message, "Если необходимо, вы можете перезапустить бота с помощью кнопки start.")
-        self.SendMessage(message, "Пожалуйста напишите в чат уникальный ID маркета:", [])
+        self.SendMessage(message, "Пожалуйста напишите в чат уникальный код маркета:", [])
         
     def Complete_Market_Authorization(self, message):
         DB = DBController()
         
-        if (DB.CheckMarketsHash(str(message.text))):
-            self.StateController.SetUserStats(message.chat.id, 'authorizationState', False)
+        market = DB.CheckMarketsHash(str(message.text))
+        
+        if (market):
+            self.StateController.ResetAllState(message.chat.id)
             self.StateController.SetUserStats(message.chat.id, 'selectedMarket', str(message.text))
-            self.SendMessage(message, f"Выбран маркет: {message.text}", [])
+            self.SendMessage(message, f"Выбран маркет: {market['name']}", [])
         else:
-            self.SendMessage(message, f"Маркет: {message.text} не найден!")
+            self.SendMessage(message, f"Маркет с кодом: {message.text} не найден!")
     
     def Start_Collect_Market_Sales(self, message):
         pass
