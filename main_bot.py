@@ -9,9 +9,9 @@ from bots.informer_bot import InformerBot
 
 try:
     logging.basicConfig(filename = 'bot.log', encoding = 'utf-8', level=logging.DEBUG, format='%(name)s: %(asctime)s - %(levelname)s - %(filename)s - %(module)s - %(lineno)d - %(message)s')
-    logger = logging.getLogger('main_bot_logger')
+    logger = logging.getLogger('main')
 except Exception as e:
-    err = f'{datetime.now()} - Ошибка при запуске логгера бота! {e}'
+    err = f'{datetime.now()} - Ошибка при настройке логгера бота! {e}'
     print(err)
         
     with open('bot_error_log.txt', 'a', encoding = 'utf-8') as file:

@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 import hashlib
 import re
+import logging
 from datetime import datetime, timedelta
 
 from collector.sales_db_controller import DBController
@@ -9,6 +10,7 @@ from collector.state_controller import StateController
 
 class InformerBot:
     def __init__(self, parameters: dict, buttonsList: dict):
+        self.logger = logging.getLogger('informer_bot')
         
         self.parameters = parameters
         self.ButtonsList = buttonsList
@@ -20,7 +22,9 @@ class InformerBot:
         self.bot.message_handler(commands=["start"])(self.StartCommand)
         self.bot.message_handler(content_types=["text"])(self.MainFunc)
         
-        print('Бот успешно инициирован!')
+        msg = 'Бот успешно инициирован!'
+        print(msg)
+        self.logger.info(msg)
         
     def StartCommand(self, message):
         # сообщение об остановке сбора продаж
@@ -176,8 +180,11 @@ class InformerBot:
             newMarket['end_date'] = str(end_date.strftime('%Y-%m-%d %H:%M'))
             newMarket['location'] = str(None)
         except Exception as e:
-            self.SendMessage(message, f"Неожиданная ошибка при попытке преобразовать данные о маркете! Обратитесь к администратору!")
-            self.SendMessage(message, f"{e}", [])
+            msg = "Неожиданная ошибка при попытке преобразовать данные о маркете! Обратитесь к администратору!"
+            self.SendMessage(message, msg, [])
+            
+            print(msg + f"{e}")
+            self.logger.error(msg + f"{e}")
             
         try:
             DB = DBController()
@@ -185,11 +192,10 @@ class InformerBot:
             
         except Exception as e:
             msg = "Ошибка при добавлении маркета в базу данных!"
-            with open('bot_error_log.txt', 'a', encoding = 'utf-8') as file:
-                file.write(msg + f' {e}' + '\n')
-                file.close()
             
             self.SendMessage(message, msg, [])
+            print(msg + f"{e}")
+            self.logger.error(msg + f"{e}")
             
         self.StateController.ResetAllState(message.chat.id)
         self.SendMessage(message, f"Вы успешно добавили маркет {newMarket['name']}!\n\nЕго уникальный код: `{newMarket['hash']}`", [])
