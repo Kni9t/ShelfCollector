@@ -71,11 +71,27 @@ class InformerBot:
             
         elif (message.text == "Посмотреть актуальные маркеты") and self.CheckAllowUsers(message, self.parameters['admins']):
             self.Show_Markets_List(message)
+            
+        elif (message.text == "Проверить авторизацию"):
+            self.ShowCurrentMarket(message)
         
         else:
             self.SendMessage(message, "Я не знаю такой команды! Вы можете перезапустить меня, если что-то пошло не так!", [])
     
     # Primary function
+    
+    def ShowCurrentMarket(self, message):
+        marketHash = self.StateController.GetState(message.chat.id, 'selectedMarket')
+        
+        if (marketHash):
+            DB = DBController()
+            market = DB.CheckMarketsHash(marketHash)
+            
+            marketDescription = f"{market['name'].capitalize()} ID: {market['market_id']}\nДата проведения: {market['start_date']}\nДата окончания: {market['end_date']}\nМесто проведения: {market['location']}\nКод маркета: `{market['hash']}`"
+            
+            self.SendMessage(message, f'Вы авторизованы для записи продаж на маркете:\n\n{marketDescription}', [])
+        else:
+            self.SendMessage(message, f'Вы не авторизованы для записи продаж на маркете!', self.ButtonsList['OfferSelectMarketButtonList'])
     
     def Show_Markets_List(self, message):
         DB = DBController()
