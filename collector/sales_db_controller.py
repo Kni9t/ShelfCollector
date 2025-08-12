@@ -114,28 +114,13 @@ class DBController():
         return None
     
     def CheckMarketsHash(self, hash):
-        marketsList = self.GetAllMarketsHash()
+        marketsList = self.GetAllMarkets()
         
         for market in marketsList:
             if (hash == market["hash"]):
                 return market
         
         return None
-        
-    def GetAllMarketsHash(self):
-        self.cursor.execute(f"SELECT market_id, hash, name FROM markets")
-        rows = self.cursor.fetchall()
-        
-        output = []
-    
-        for row in rows:
-            output.append({
-                "market_id": row[0],
-                "hash": row[1],
-                "name": row[2]
-            })
-            
-        return output
     
     def SendQuery(self, query):
         self.cursor.execute(query)
