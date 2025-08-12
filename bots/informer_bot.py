@@ -77,6 +77,10 @@ class InformerBot:
         
         else:
             self.SendMessage(message, "Я не знаю такой команды! Вы можете перезапустить меня, если что-то пошло не так!", [])
+            
+            msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} передал неизвесную команду: [{message.text}]'
+            print(msg)
+            self.logger.warning(msg)
     
     # Primary function
     
@@ -139,6 +143,10 @@ class InformerBot:
                     msgTypeSales = 'Оплата: Онлайн перевод'
                     
                 self.SendMessage(message, f"Продажа зарегистрирована!\nID: {lastID}\nСумма: {buf_sales['revenue']}\n{msgTypeSales}")
+                
+                msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новую продажу для маркета: [{buf_sales}]'
+                print(msg)
+                self.logger.warning(msg)
             else:
                 resultChecking = DB.CheckSalesOwner(bufNum * -1, message.chat.id)
                 
@@ -146,12 +154,20 @@ class InformerBot:
                     if(resultChecking):
                         removedSales = DB.RemoveMarketSaleById(bufNum * -1)
                         self.SendMessage(message, f"Продажа, зарегистрированная в {removedSales['date']} {removedSales['time']}\nc ID: {removedSales['id']}, на сумму {removedSales['revenue']} успешно удалена!")
+                        
+                        msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} удалил продажу для маркета: [{removedSales}]'
+                        print(msg)
+                        self.logger.warning(msg)
                     else:
                         self.SendMessage(message, f"У вас нету доступа для удаления данной продажи, так как не вы добавили ее!")
                 else:
                     self.SendMessage(message, f"Продажи с ID:{bufNum * -1} не существует!")
         except Exception as e:
             self.SendMessage(message, "Некорректный формат ввода!\nПожалуйста используйте числа и при необходимости обозначить наличный расчет добавляйте букву 'н' после числа!\nПримеры: '300', '450н', '600Н'", [])
+            
+            msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} ввел некоректные данные о продажах [{message.text}]'
+            print(msg)
+            self.logger.warning(msg)
         
     def Begin_Sales_Collect(self, message):
         marketHash = self.StateController.GetState(message.chat.id, 'selectedMarket')
@@ -221,6 +237,10 @@ class InformerBot:
             
         self.StateController.ResetAllState(message.chat.id)
         self.SendMessage(message, f"Вы успешно добавили маркет {newMarket['name']}!\n\nЕго уникальный код: `{newMarket['hash']}`", [])
+        
+        msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новый маркет: [{newMarket}]'
+        print(msg)
+        self.logger.info(msg)
     
     def Begin_Market_Authorization(self, message):
         self.StateController.ResetAllState(message.chat.id)
@@ -237,12 +257,13 @@ class InformerBot:
             self.StateController.ResetAllState(message.chat.id)
             self.StateController.SetUserStats(message.chat.id, 'selectedMarket', str(message.text))
             self.SendMessage(message, f"Выбран маркет: {market['name']}\nВы можете начать собирать продажи!", self.ButtonsList['CompleteSelectMarketButtonList'])
+            
+            msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} успешно авторизовался для маркета: [{market}]'
+            print(msg)
+            self.logger.warning(msg)
         else:
             self.SendMessage(message, f"Маркет с кодом: {message.text} не найден! Вы можете попробовать ввести код еще раз:", [])
-    
-    def Start_Collect_Market_Sales(self, message):
-        pass
-    
+        
     def Get_Shelf_Detail(self, message):
         if (message.text == "Продажи по всем дням в этом месяце"):
             date = datetime.now().strftime('%m')
