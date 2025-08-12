@@ -77,7 +77,7 @@ class InformerBot:
         msg = "Список актуальных маркетов:\n"
         
         for market in marketsList:
-            msg += f"{market['name'].capitalize()} ID: {market['market_id']} дата проведения: {market['start_date']} код маркета: `{market['hash']}`\n"
+            msg += f"{market['name'].capitalize()} ID: {market['market_id']}\nДата проведения: {market['start_date']}\nДата окончания: {market['end_date']}\nМесто проведения: {market['location']}\nКод маркета: `{market['hash']}`\n\n"
             
         self.SendMessage(message, f"{msg}", self.ButtonsList['AdminMainMenuButtonList'])
         
