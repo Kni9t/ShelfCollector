@@ -29,6 +29,12 @@ class InformerBot:
     def StartCommand(self, message):
         # сообщение об остановке сбора продаж
         self.StateController.ResetAllState(message.chat.id)
+        marketHash = self.StateController.GetState(message.chat.id, 'selectedMarket')
+        
+        if (marketHash):
+            DB = DBController()
+            marketName = DB.CheckMarketsHash(marketHash)['name']
+            self.SendMessage(message, f'Вы авторизованы для записи продаж на маркете:\n{marketName}')
                 
         if (self.CheckAllowUsers(message, self.parameters['admins'])):
             self.SendMessage(message, f'Приветствую, {message.from_user.first_name}! Чем я могу помочь сегодня?', self.ButtonsList['AdminMainMenuButtonList'])
