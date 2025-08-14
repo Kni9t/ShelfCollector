@@ -108,7 +108,7 @@ class InformerBot:
         DB = DBController()
         marketsList = DB.GetAllMarkets()
         if (marketsList):
-            msg = "Список актуальных маркетов:\n"
+            msg = "Список актуальных маркетов:\n\n"
             
             for market in marketsList:
                 msg += f"{market['name'].capitalize()} ID: {market['market_id']}\nДата проведения: {market['start_date']}\nДата окончания: {market['end_date']}\nМесто проведения: {market['location']}\nКод маркета: `{market['hash']}`\n\n"
