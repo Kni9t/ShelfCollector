@@ -33,8 +33,12 @@ class InformerBot:
         
         if (marketHash):
             DB = DBController()
-            marketName = DB.CheckMarketsHash(marketHash)['name']
-            self.SendMessage(message, f'Вы авторизованы для записи продаж на маркете:\n{marketName}')
+            marketName = DB.CheckMarketsHash(marketHash)
+            if (marketName):
+                marketName = marketName['name']
+                self.SendMessage(message, f'Вы авторизованы для записи продаж на маркете:\n{marketName}')
+            else:
+                self.SendMessage(message, f'Вы авторизованы для записи продаж на маркете но данных о маркетах нет в БД!')
                 
         if (self.CheckAllowUsers(message, self.parameters['admins'])):
             self.SendMessage(message, f'Приветствую, {message.from_user.first_name}! Чем я могу помочь сегодня?', self.ButtonsList['AdminMainMenuButtonList'])
@@ -44,6 +48,9 @@ class InformerBot:
     def MainFunc(self, message):
         if (message.text == "Получить информацию о продажах по полкам") and self.CheckAllowUsers(message, self.parameters['admins']):
             self.SendMessage(message, f"Какую детализацию вы хотели бы получить?", self.ButtonsList['DetailShelfButtonList'])
+            
+        elif (message.text == "Получить информацию о продажах по маркетам") and self.CheckAllowUsers(message, self.parameters['admins']):
+            self.SendMessage(message, f"Какую информацию вы хотели бы получить?", self.ButtonsList['DetailMarketButtonList'])
             
         elif (message.text != '') and (self.StateController.GetState(message.chat.id, 'authorizationState')):
             self.Complete_Market_Authorization(message)
@@ -59,6 +66,9 @@ class InformerBot:
             
         elif (message.text in self.ButtonsList['DetailShelfButtonList']) and self.CheckAllowUsers(message, self.parameters['admins']):
             self.Get_Shelf_Detail(message)
+            
+        elif (message.text in self.ButtonsList['DetailMarketButtonList']) and self.CheckAllowUsers(message, self.parameters['admins']):
+            self.Get_Markets_Detail(message)
             
         elif (message.text == "Управление маркетами") and self.CheckAllowUsers(message, self.parameters['admins']):
             self.SendMessage(message, f"Вы хотите добавить маркет?", self.ButtonsList['AdminBeginMarketSalesButtonList'])
@@ -106,7 +116,6 @@ class InformerBot:
             msg += f"{market['name'].capitalize()} ID: {market['market_id']}\nДата проведения: {market['start_date']}\nДата окончания: {market['end_date']}\nМесто проведения: {market['location']}\nКод маркета: `{market['hash']}`\n\n"
             
         self.SendMessage(message, f"{msg}", self.ButtonsList['AdminMainMenuButtonList'])
-        
     
     def Collect_Sales(self, message):
         DB = DBController()
@@ -263,7 +272,28 @@ class InformerBot:
             self.logger.warning(msg)
         else:
             self.SendMessage(message, f"Маркет с кодом: {message.text} не найден! Вы можете попробовать ввести код еще раз:", [])
+    
+    def Get_Markets_Detail(self, message):
+        DB = DBController()
         
+        if (message.text == "Доход по маркетам в прошлом месяце"):
+            self.SendMessage(message, 'Пока данный функционал отсутсвует!', [])
+        
+        elif (message.text == "Средний ежемесячный доход с маркетов за этот год"):
+            self.SendMessage(message, 'Пока данный функционал отсутсвует!', [])
+        
+        elif (message.text == "Доход со всех маркетов"):
+            salesList = DB.GetAllMarketSales()
+            
+            if (len(salesList) == 0):
+                self.SendMessage(message, "Данные о маркетах отсутсвуют в системе!", [])
+            else:
+                msg = ''
+                for market in salesList:
+                    msg += f'{market['name']}\n{market['date']}\nНаличные: {market['cash']} руб.\nПереводы: {market['online']} руб.\nИтог: {market['total']} руб.\n\n'
+            
+                self.SendMessage(message, f"{msg}", [])
+      
     def Get_Shelf_Detail(self, message):
         if (message.text == "Продажи по всем дням в этом месяце"):
             date = datetime.now().strftime('%m')

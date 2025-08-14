@@ -58,6 +58,26 @@ class DBController():
         self.connection.commit()
         return self.cursor.lastrowid
     
+    def GetAllMarketSales(self):
+        cmd = "SELECT m.market_id, m.name AS market_name, m.start_date, SUM(CASE WHEN s.cash IN (1, '1', 't', 'true', 'True')  THEN s.revenue ELSE 0 END) AS revenue_cash, SUM(CASE WHEN s.cash IN (0, '0', 'f', 'false', 'False') THEN s.revenue ELSE 0 END) AS revenue_noncash, SUM(COALESCE(s.revenue,0)) AS revenue_total FROM markets AS m LEFT JOIN market_sales AS s ON s.market_id = m.market_id GROUP BY m.market_id, m.name ORDER BY m.market_id;"
+        self.cursor.execute(cmd)
+        rows = self.cursor.fetchall()
+        salesList = []
+        
+        for row in rows:
+            result = {
+                'id': int(row[0]),
+                'name': str(row[1]).capitalize(),
+                'date': str(row[2]),
+                'cash': int(row[3]),
+                'online': int(row[4]),
+                'total': int(row[5])
+            }
+            
+            salesList.append(result)
+            
+        return salesList
+    
     def GetMarketSaleById(self, sale_id: int):
         if (sale_id >= 0):
             self.cursor.execute(f"SELECT * FROM market_sales WHERE id = {sale_id}")
@@ -87,7 +107,7 @@ class DBController():
             markets.append({
                 "market_id": int(row[0]),
                 "hash": str(row[1]),
-                "name": str(row[2]),
+                "name": str(row[2]).capitalize(),
                 "start_date": str(row[3]),
                 "end_date": str(row[4]),
                 "location": str(row[5])
