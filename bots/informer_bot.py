@@ -267,6 +267,10 @@ class InformerBot:
     def Get_Markets_Detail(self, message):
         DB = DBController()
         
+        # Добавить в DetailMarketButtonList
+        # "Доход по маркетам в прошлом месяце",
+        # "Средний ежемесячный доход с маркетов за этот год",
+        
         if (message.text == "Доход по маркетам в прошлом месяце"):
             self.SendMessage(message, 'Пока данный функционал отсутствует!', [])
         
