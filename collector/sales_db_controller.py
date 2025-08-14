@@ -70,6 +70,8 @@ class DBController():
             
             self.connection.commit()
             
+            return True
+            
         except Exception as e:
             msg = f'Ошибка при добавлении маркета! [{e}]'
             self.logger.error(msg)
