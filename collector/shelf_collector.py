@@ -34,6 +34,8 @@ class ShelfCollector:
         
         readyLines = []
         
+        lastDate = None
+        
         for mail in mails:
             title = mail.get_subject()
             
@@ -112,8 +114,10 @@ class ShelfCollector:
                 self.logger.info(msg)
                 
         bufData = dict(self.js.getData())
-        bufData["polks"] = lastDate
-        self.js.writeData(bufData)
+        
+        if (lastDate is not None):
+            bufData["polks"] = lastDate
+            self.js.writeData(bufData)
             
         return readyLines
     
@@ -201,9 +205,10 @@ class ShelfCollector:
             self.logger.info(msg)
            
         bufData = dict(self.js.getData())
+        
         if (lastDate is not None):
             bufData["fox"] = lastDate
-        self.js.writeData(bufData)
+            self.js.writeData(bufData)
         
         return readyLines
     
