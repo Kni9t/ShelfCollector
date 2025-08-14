@@ -228,21 +228,20 @@ class InformerBot:
             
             self.logger.error(msg + f"{e}")
             
-        try:
-            DB = DBController()
-            DB.AddMarkets(newMarket)
-            
-        except Exception as e:
-            msg = "Ошибка при добавлении маркета в базу данных!"
-            
-            self.SendMessage(message, msg, [])
-            self.logger.error(msg + f"{e}")
-            
-        self.StateController.ResetAllState(message.chat.id)
-        self.SendMessage(message, f"Вы успешно добавили маркет: {newMarket['name'].capitalize()}!\n\nЕго уникальный код: `{newMarket['hash']}`", [])
+        DB = DBController()
+        result = DB.AddMarkets(newMarket)
         
-        msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новый маркет: [{newMarket}]'
-        self.logger.debug(msg)
+        if (result is None):
+            msg = "Ошибка при добавлении маркета в базу данных! Обратитесь к администратору!"
+        
+            self.SendMessage(message, msg, [])
+            self.logger.error(msg)
+        else:
+            self.StateController.ResetAllState(message.chat.id)
+            self.SendMessage(message, f"Вы успешно добавили маркет: {newMarket['name'].capitalize()}!\n\nЕго уникальный код: `{newMarket['hash']}`", [])
+            
+            msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новый маркет: [{newMarket}]'
+            self.logger.debug(msg)
     
     def Begin_Market_Authorization(self, message):
         self.StateController.ResetAllState(message.chat.id)
@@ -277,14 +276,14 @@ class InformerBot:
         elif (message.text == "Доход со всех маркетов"):
             salesList = DB.GetAllMarketSales()
             
-            if (len(salesList) == 0):
-                self.SendMessage(message, "Данные о маркетах отсутсвуют в системе!", [])
-            else:
+            if (salesList):
                 msg = ''
                 for market in salesList:
                     msg += f'{market['name']}\n{market['date']}\nНаличные: {market['cash']} руб.\nПереводы: {market['online']} руб.\nИтог: {market['total']} руб.\n\n'
             
                 self.SendMessage(message, f"{msg}", [])
+            else:
+                self.SendMessage(message, "Данные о маркетах отсутствуют в системе!", [])
       
     def Get_Shelf_Detail(self, message):
         if (message.text == "Продажи по всем дням в этом месяце"):
@@ -294,15 +293,15 @@ class InformerBot:
             DB = DBController()
             rows = DB.SendQuery(query)
             
-            resultString = f'Данные на месяц {date} в формате:\nдень, полка, суммарный доход, число продаж\n\n'
+            if (rows):
+                resultString = f'Данные на месяц {date} в формате:\nдень, полка, суммарный доход, число продаж\n\n'
             
-            for row in rows:
-                resultString += f'{row[0]} - {row[1]} - {row[2]} руб. - {row[3]} шт.\n'
-                
-            if (self.CheckAllowUsers(message, self.parameters['admins'])):
+                for row in rows:
+                    resultString += f'{row[0]} - {row[1]} - {row[2]} руб. - {row[3]} шт.\n'
+                    
                 self.SendMessage(message, f'{resultString}', self.ButtonsList['AdminMainMenuButtonList'])
             else:
-                self.SendMessage(message, f'{resultString}', self.ButtonsList['MainMenuButtonList'])
+                self.SendMessage(message, "Данные о полках отсутствуют в системе!", [])
         
         elif (message.text == "Продажи по всем месяцам в этом году"):
             date = datetime.now().strftime('%Y')
@@ -311,15 +310,16 @@ class InformerBot:
             DB = DBController()
             rows = DB.SendQuery(query)
             
-            resultString = f'Данные на {date} год в формате:\nмесяц, полка, суммарный доход, число продаж\n\n'
+            if (rows):
+                resultString = f'Данные на {date} год в формате:\nмесяц, полка, суммарный доход, число продаж\n\n'
             
-            for row in rows:
-                resultString += f'{row[0]} - {row[1]} - {row[2]} руб. - {row[3]} шт.\n'
-                
-            if (self.CheckAllowUsers(message, self.parameters['admins'])):
+                for row in rows:
+                    resultString += f'{row[0]} - {row[1]} - {row[2]} руб. - {row[3]} шт.\n'
+                    
                 self.SendMessage(message, f'{resultString}', self.ButtonsList['AdminMainMenuButtonList'])
             else:
-                self.SendMessage(message, f'{resultString}', self.ButtonsList['MainMenuButtonList'])
+                self.SendMessage(message, "Данные о полках отсутствуют в системе!", [])
+            
         elif (message.text == "Продажи за прошлый день"):
             date = (datetime.now() - timedelta(days = 1)).strftime('%Y-%m-%d')
             query = f'SELECT sh.name AS shelf_name, SUM(s.revenue) AS total_revenue, s.date FROM sales s join shelves sh on s.shelf_id = sh.shelf_id WHERE s.date = "{date}" GROUP BY sh.name;'
@@ -327,18 +327,19 @@ class InformerBot:
             DB = DBController()
             rows = DB.SendQuery(query)
             
-            resultString = f'Данные на {date}:\n'
+            if (rows):
+                resultString = f'Данные на {date}:\n'
             
-            if (len(rows) == 0):
-                resultString += 'Продаж в этот день нету!'
-            else:
-                for row in rows:
-                    resultString += f'{row[0]} - {row[1]} руб.\n'
-                    
-            if (self.CheckAllowUsers(message, self.parameters['admins'])):
+                if (len(rows) == 0):
+                    resultString += 'Продаж в этот день нету!'
+                else:
+                    for row in rows:
+                        resultString += f'{row[0]} - {row[1]} руб.\n'
+                        
                 self.SendMessage(message, f'{resultString}', self.ButtonsList['AdminMainMenuButtonList'])
             else:
-                self.SendMessage(message, f'{resultString}', self.ButtonsList['MainMenuButtonList'])
+                self.SendMessage(message, "Данные о полках отсутствуют в системе!", [])
+            
         elif (message.text == "Средний ежемесячный доход за этот год"):
             date = datetime.now().strftime('%Y')
             query = f"SELECT shelves.name AS shelf_name, AVG(monthly_revenue) AS average_monthly_revenue FROM ( SELECT shelf_id, strftime('%Y-%m', date) AS month, SUM(revenue) AS monthly_revenue FROM sales WHERE strftime('%Y', date) = '{date}' GROUP BY shelf_id, month ) AS monthly_totals JOIN shelves ON monthly_totals.shelf_id = shelves.shelf_id GROUP BY shelves.name;"
@@ -346,19 +347,19 @@ class InformerBot:
             DB = DBController()
             rows = DB.SendQuery(query)
             
-            resultString = f'В среднем, за месяц в {date} году доход по полкам составил:\n\n'
-            totalAverage = 0
-            
-            for row in rows:
-                resultString += f'{row[0]} - {round(row[1], 2)} руб.\n'
-                totalAverage += round(row[1], 2)
+            if (rows):
+                resultString = f'В среднем, за месяц в {date} году доход по полкам составил:\n\n'
+                totalAverage = 0
                 
-            resultString += f'\nПо всем полкам суммарно: {round(totalAverage, 2)} руб.'
-            
-            if (self.CheckAllowUsers(message, self.parameters['admins'])):
+                for row in rows:
+                    resultString += f'{row[0]} - {round(row[1], 2)} руб.\n'
+                    totalAverage += round(row[1], 2)
+                    
+                resultString += f'\nПо всем полкам суммарно: {round(totalAverage, 2)} руб.'
+                
                 self.SendMessage(message, f'{resultString}', self.ButtonsList['AdminMainMenuButtonList'])
             else:
-                self.SendMessage(message, f'{resultString}', self.ButtonsList['MainMenuButtonList'])
+                self.SendMessage(message, "Данные о полках отсутствуют в системе!", [])
     
     # Bots function
       

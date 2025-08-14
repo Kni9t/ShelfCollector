@@ -55,6 +55,7 @@ class DBController():
         except Exception as e:
             msg = f'Ошибка при добавлении продажи на полку! [{e}]'
             self.logger.error(msg)
+            return None
         
     def AddMarkets(self, dataDict):
         try:
@@ -72,6 +73,7 @@ class DBController():
         except Exception as e:
             msg = f'Ошибка при добавлении маркета! [{e}]'
             self.logger.error(msg)
+            return None
         
     def AddMarketsSale(self, dataDict: dict):
         try:
@@ -84,6 +86,7 @@ class DBController():
         except Exception as e:
             msg = f'Ошибка при добавлении продажи на маркет! [{e}]'
             self.logger.error(msg)
+            return None
     
     def GetAllMarketSales(self):
         try:
@@ -109,6 +112,7 @@ class DBController():
         except Exception as e:
             msg = f'Ошибка получении всех продаж с маркета! [{e}]'
             self.logger.error(msg)
+            return None
     
     def GetMarketSaleById(self, sale_id: int):
         try:
@@ -133,6 +137,7 @@ class DBController():
         except Exception as e:
             msg = f'Ошибка получении продажи маркета по ID! [{e}]'
             self.logger.error(msg)
+            return None
     
     def GetAllMarkets(self):
         try:
@@ -156,6 +161,7 @@ class DBController():
         except Exception as e:
             msg = f'Ошибка получении списка всех маркетов! [{e}]'
             self.logger.error(msg)
+            return None
         
     def CheckSalesOwner(self, sale_id: int, user_id: int):
         try:
@@ -170,6 +176,7 @@ class DBController():
         except Exception as e:
             msg = f'Ошибка при проверке владельца продажи! [{e}]'
             self.logger.error(msg)
+            return None
     
     def RemoveMarketSaleById(self, sale_id: int):
         try:
@@ -183,6 +190,7 @@ class DBController():
         except Exception as e:
             msg = f'Ошибка при удалении продажи на маркете по id! [{e}]'
             self.logger.error(msg)
+            return None
     
     def CheckMarketsHash(self, hash):
         try:
@@ -197,6 +205,7 @@ class DBController():
         except Exception as e:
             msg = f'Ошибка при поиске хэша в списке маркетов! [{e}]'
             self.logger.error(msg)
+            return None
     
     def SendQuery(self, query):
         try:
@@ -206,5 +215,6 @@ class DBController():
             return rows
         
         except Exception as e:
-            msg = f'Ошибка при выполнении запроса в БД! [{query}]\n[{e}]'
+            msg = f'Ошибка при выполнении запроса в БД! [{query}] - [{e}]'
             self.logger.error(msg)
+            return None
