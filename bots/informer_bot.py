@@ -245,7 +245,7 @@ class InformerBot:
             self.logger.error(msg + f"{e}")
             
         self.StateController.ResetAllState(message.chat.id)
-        self.SendMessage(message, f"Вы успешно добавили маркет {newMarket['name']}!\n\nЕго уникальный код: `{newMarket['hash']}`", [])
+        self.SendMessage(message, f"Вы успешно добавили маркет: {newMarket['name'].capitalize()}!\n\nЕго уникальный код: `{newMarket['hash']}`", [])
         
         msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новый маркет: [{newMarket}]'
         print(msg)
