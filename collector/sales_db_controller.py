@@ -1,4 +1,5 @@
 import sqlite3
+import logging
 
 # Shelf id:
 # Polkius - 1
@@ -11,139 +12,199 @@ class DBController():
         self.connection = sqlite3.connect(dbFileName)
         self.cursor = self.connection.cursor()
         
+        self.logger = logging.getLogger('db_logger')
+        
     def InitMainTables(self):
-        cmd = f"CREATE TABLE IF NOT EXISTS shelves (shelf_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)"
-        self.cursor.execute(cmd)
-        
-        self.cursor.execute("SELECT COUNT(*) FROM shelves;")
-        
-        if (self.cursor.fetchall()[0][0] < 3):
-            self.cursor.execute("INSERT INTO shelves (name) VALUES ('Полкиус');")
-            self.cursor.execute("INSERT INTO shelves (name) VALUES ('Волчок');")
-            self.cursor.execute("INSERT INTO shelves (name) VALUES ('Лисья полка');")
-            self.connection.commit()
+        try:
+            cmd = f"CREATE TABLE IF NOT EXISTS shelves (shelf_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)"
+            self.cursor.execute(cmd)
+            self.logger.info('Таблица shelves успешно инициирована!')
             
-        cmd = f"CREATE TABLE IF NOT EXISTS markets (market_id INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT, name TEXT, start_date TEXT, end_date TEXT, location TEXT)"
-        self.cursor.execute(cmd)
-        
-        cmd = f"CREATE TABLE IF NOT EXISTS market_sales (id INTEGER PRIMARY KEY AUTOINCREMENT, market_id INTEGER, date TEXT, time TEXT, revenue INTEGER, cash TEXT, sender_id TEXT, sender_name TEXT, FOREIGN KEY(market_id) REFERENCES markets(id))"
-        self.cursor.execute(cmd)
-        
-        cmd = f"CREATE TABLE IF NOT EXISTS sales (id INTEGER PRIMARY KEY AUTOINCREMENT, shelf_id INTEGER, name TEXT, count INTEGER, revenue INTEGER, date TEXT, FOREIGN KEY(shelf_id) REFERENCES shelves(id))"
-        self.cursor.execute(cmd)
+            self.cursor.execute("SELECT COUNT(*) FROM shelves;")
+            if (self.cursor.fetchall()[0][0] < 3):
+                self.cursor.execute("INSERT INTO shelves (name) VALUES ('Полкиус');")
+                self.cursor.execute("INSERT INTO shelves (name) VALUES ('Волчок');")
+                self.cursor.execute("INSERT INTO shelves (name) VALUES ('Лисья полка');")
+                self.connection.commit()
+                self.logger.info('В таблицу shelves успешно добавлена информация о полках!')
+                
+            cmd = f"CREATE TABLE IF NOT EXISTS markets (market_id INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT, name TEXT, start_date TEXT, end_date TEXT, location TEXT)"
+            self.cursor.execute(cmd)
+            self.logger.info('Таблица markets успешно инициирована!')
+            
+            cmd = f"CREATE TABLE IF NOT EXISTS market_sales (id INTEGER PRIMARY KEY AUTOINCREMENT, market_id INTEGER, date TEXT, time TEXT, revenue INTEGER, cash TEXT, sender_id TEXT, sender_name TEXT, FOREIGN KEY(market_id) REFERENCES markets(id))"
+            self.cursor.execute(cmd)
+            self.logger.info('Таблица market_sales успешно инициирована!')
+            
+            cmd = f"CREATE TABLE IF NOT EXISTS sales (id INTEGER PRIMARY KEY AUTOINCREMENT, shelf_id INTEGER, name TEXT, count INTEGER, revenue INTEGER, date TEXT, FOREIGN KEY(shelf_id) REFERENCES shelves(id))"
+            self.cursor.execute(cmd)
+            self.logger.info('Таблица sales успешно инициирована!')
+            
+        except Exception as e:
+            msg = f'Ошибка при инициировании основных таблиц! [{e}]'
+            self.logger.error(msg)
         
     def AddShelfSale(self, dataDict):
-        for line in dataDict:
-            cmd = f"INSERT INTO sales (shelf_id, name, count, revenue, date) VALUES (?, ?, ?, ?, ?)"
-            self.cursor.execute(cmd, (int(line['shelf_id']), str(line['name']), int(line['count']), int(line['revenue']), str(line['date'])))
-        
-        self.connection.commit()
+        try:
+            for line in dataDict:
+                cmd = f"INSERT INTO sales (shelf_id, name, count, revenue, date) VALUES (?, ?, ?, ?, ?)"
+                self.cursor.execute(cmd, (int(line['shelf_id']), str(line['name']), int(line['count']), int(line['revenue']), str(line['date'])))
+            
+            self.connection.commit()
+            
+        except Exception as e:
+            msg = f'Ошибка при добавлении продажи на полку! [{e}]'
+            self.logger.error(msg)
         
     def AddMarkets(self, dataDict):
-        cmd = f"INSERT INTO markets (hash, name, start_date, end_date, location) VALUES (?, ?, ?, ?, ?)"
-        
-        if (type(dataDict) is list):
-            for line in dataDict:
-                self.cursor.execute(cmd, (str(line['hash']), str(line['name']), str(line['start_date']), str(line['end_date']), str(line['location'])))
-                
-        elif (type(dataDict) is dict):
-            self.cursor.execute(cmd, (str(dataDict['hash']), str(dataDict['name']), str(dataDict['start_date']), str(dataDict['end_date']), str(dataDict['location'])))
-        
-        self.connection.commit()
+        try:
+            cmd = f"INSERT INTO markets (hash, name, start_date, end_date, location) VALUES (?, ?, ?, ?, ?)"
+            
+            if (type(dataDict) is list):
+                for line in dataDict:
+                    self.cursor.execute(cmd, (str(line['hash']), str(line['name']), str(line['start_date']), str(line['end_date']), str(line['location'])))
+                    
+            elif (type(dataDict) is dict):
+                self.cursor.execute(cmd, (str(dataDict['hash']), str(dataDict['name']), str(dataDict['start_date']), str(dataDict['end_date']), str(dataDict['location'])))
+            
+            self.connection.commit()
+            
+        except Exception as e:
+            msg = f'Ошибка при добавлении маркета! [{e}]'
+            self.logger.error(msg)
         
     def AddMarketsSale(self, dataDict: dict):
-        cmd = f"INSERT INTO market_sales (market_id, date, time, revenue, cash, sender_id, sender_name) VALUES (?, ?, ?, ?, ?, ?, ?)"
-        self.cursor.execute(cmd, (int(dataDict['market_id']), str(dataDict['date']), str(dataDict['time']), int(dataDict['revenue']), str(dataDict['cash']), str(dataDict['sender_id']), str(dataDict['sender_name'])))
+        try:
+            cmd = f"INSERT INTO market_sales (market_id, date, time, revenue, cash, sender_id, sender_name) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            self.cursor.execute(cmd, (int(dataDict['market_id']), str(dataDict['date']), str(dataDict['time']), int(dataDict['revenue']), str(dataDict['cash']), str(dataDict['sender_id']), str(dataDict['sender_name'])))
+            
+            self.connection.commit()
+            return self.cursor.lastrowid
         
-        self.connection.commit()
-        return self.cursor.lastrowid
+        except Exception as e:
+            msg = f'Ошибка при добавлении продажи на маркет! [{e}]'
+            self.logger.error(msg)
     
     def GetAllMarketSales(self):
-        cmd = "SELECT m.market_id, m.name AS market_name, m.start_date, SUM(CASE WHEN s.cash IN (1, '1', 't', 'true', 'True')  THEN s.revenue ELSE 0 END) AS revenue_cash, SUM(CASE WHEN s.cash IN (0, '0', 'f', 'false', 'False') THEN s.revenue ELSE 0 END) AS revenue_noncash, SUM(COALESCE(s.revenue,0)) AS revenue_total FROM markets AS m LEFT JOIN market_sales AS s ON s.market_id = m.market_id GROUP BY m.market_id, m.name ORDER BY m.market_id;"
-        self.cursor.execute(cmd)
-        rows = self.cursor.fetchall()
-        salesList = []
+        try:
+            cmd = "SELECT m.market_id, m.name AS market_name, m.start_date, SUM(CASE WHEN s.cash IN (1, '1', 't', 'true', 'True')  THEN s.revenue ELSE 0 END) AS revenue_cash, SUM(CASE WHEN s.cash IN (0, '0', 'f', 'false', 'False') THEN s.revenue ELSE 0 END) AS revenue_noncash, SUM(COALESCE(s.revenue,0)) AS revenue_total FROM markets AS m LEFT JOIN market_sales AS s ON s.market_id = m.market_id GROUP BY m.market_id, m.name ORDER BY m.market_id;"
+            self.cursor.execute(cmd)
+            rows = self.cursor.fetchall()
+            salesList = []
+            
+            for row in rows:
+                result = {
+                    'id': int(row[0]),
+                    'name': str(row[1]).capitalize(),
+                    'date': str(row[2]),
+                    'cash': int(row[3]),
+                    'online': int(row[4]),
+                    'total': int(row[5])
+                }
+                
+                salesList.append(result)
+                
+            return salesList
         
-        for row in rows:
-            result = {
-                'id': int(row[0]),
-                'name': str(row[1]).capitalize(),
-                'date': str(row[2]),
-                'cash': int(row[3]),
-                'online': int(row[4]),
-                'total': int(row[5])
-            }
-            
-            salesList.append(result)
-            
-        return salesList
+        except Exception as e:
+            msg = f'Ошибка получении всех продаж с маркета! [{e}]'
+            self.logger.error(msg)
     
     def GetMarketSaleById(self, sale_id: int):
-        if (sale_id >= 0):
-            self.cursor.execute(f"SELECT * FROM market_sales WHERE id = {sale_id}")
-            row = self.cursor.fetchall()[0]
-            
-            sales = {
-                "id": int(row[0]),
-                "market_id": int(row[1]),
-                "date": str(row[2]),
-                "time": str(row[3]),
-                "revenue": int(row[4]),
-                "cash": str(row[5]),
-                "sender_id": int(row[6]),
-                "sender_name": str(row[7]),
-            }
-            
-            return sales
-        return None
+        try:
+            if (sale_id >= 0):
+                self.cursor.execute(f"SELECT * FROM market_sales WHERE id = {sale_id}")
+                row = self.cursor.fetchall()[0]
+                
+                sales = {
+                    "id": int(row[0]),
+                    "market_id": int(row[1]),
+                    "date": str(row[2]),
+                    "time": str(row[3]),
+                    "revenue": int(row[4]),
+                    "cash": str(row[5]),
+                    "sender_id": int(row[6]),
+                    "sender_name": str(row[7]),
+                }
+                
+                return sales
+            return None
+        
+        except Exception as e:
+            msg = f'Ошибка получении продажи маркета по ID! [{e}]'
+            self.logger.error(msg)
     
     def GetAllMarkets(self):
-        self.cursor.execute(f"SELECT * FROM markets")
-        rows = self.cursor.fetchall()
-        
-        markets = []
-        
-        for row in rows:
-            markets.append({
-                "market_id": int(row[0]),
-                "hash": str(row[1]),
-                "name": str(row[2]).capitalize(),
-                "start_date": str(row[3]),
-                "end_date": str(row[4]),
-                "location": str(row[5])
-            })
+        try:
+            self.cursor.execute(f"SELECT * FROM markets")
+            rows = self.cursor.fetchall()
             
-        return markets
+            markets = []
+            
+            for row in rows:
+                markets.append({
+                    "market_id": int(row[0]),
+                    "hash": str(row[1]),
+                    "name": str(row[2]).capitalize(),
+                    "start_date": str(row[3]),
+                    "end_date": str(row[4]),
+                    "location": str(row[5])
+                })
+                
+            return markets
         
-    
+        except Exception as e:
+            msg = f'Ошибка получении списка всех маркетов! [{e}]'
+            self.logger.error(msg)
+        
     def CheckSalesOwner(self, sale_id: int, user_id: int):
-        sales = self.GetMarketSaleById(sale_id)
-        if (sales):
-            if (sales['sender_id'] == user_id):
-                return True
-            else:
-                return False
-        return None
+        try:
+            sales = self.GetMarketSaleById(sale_id)
+            if (sales):
+                if (sales['sender_id'] == user_id):
+                    return True
+                else:
+                    return False
+            return None
+        
+        except Exception as e:
+            msg = f'Ошибка при проверке владельца продажи! [{e}]'
+            self.logger.error(msg)
     
     def RemoveMarketSaleById(self, sale_id: int):
-        if (sale_id >= 0):
-            sales = self.GetMarketSaleById(sale_id)
-            self.cursor.execute(f"DELETE FROM market_sales WHERE id = {sale_id}")
-            self.connection.commit()
-            return sales
-        return None
+        try:
+            if (sale_id >= 0):
+                sales = self.GetMarketSaleById(sale_id)
+                self.cursor.execute(f"DELETE FROM market_sales WHERE id = {sale_id}")
+                self.connection.commit()
+                return sales
+            return None
+        
+        except Exception as e:
+            msg = f'Ошибка при удалении продажи на маркете по id! [{e}]'
+            self.logger.error(msg)
     
     def CheckMarketsHash(self, hash):
-        marketsList = self.GetAllMarkets()
+        try:
+            marketsList = self.GetAllMarkets()
+            
+            for market in marketsList:
+                if (hash == market["hash"]):
+                    return market
+            
+            return None
         
-        for market in marketsList:
-            if (hash == market["hash"]):
-                return market
-        
-        return None
+        except Exception as e:
+            msg = f'Ошибка при поиске хэша в списке маркетов! [{e}]'
+            self.logger.error(msg)
     
     def SendQuery(self, query):
-        self.cursor.execute(query)
-        rows = self.cursor.fetchall()
+        try:
+            self.cursor.execute(query)
+            rows = self.cursor.fetchall()
+            
+            return rows
         
-        return rows
+        except Exception as e:
+            msg = f'Ошибка при выполнении запроса в БД! [{query}]\n[{e}]'
+            self.logger.error(msg)

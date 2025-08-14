@@ -10,7 +10,7 @@ from collector.state_controller import StateController
 
 class InformerBot:
     def __init__(self, parameters: dict, buttonsList: dict):
-        self.logger = logging.getLogger('informer_bot')
+        self.logger = logging.getLogger('informer_bot_logger')
         
         self.parameters = parameters
         self.ButtonsList = buttonsList
@@ -37,8 +37,6 @@ class InformerBot:
             if (marketName):
                 marketName = marketName['name']
                 self.SendMessage(message, f'Вы авторизованы для записи продаж на маркете:\n{marketName}')
-            else:
-                self.SendMessage(message, f'Вы авторизованы для записи продаж на маркете но данных о маркетах нет в БД!')
                 
         if (self.CheckAllowUsers(message, self.parameters['admins'])):
             self.SendMessage(message, f'Приветствую, {message.from_user.first_name}! Чем я могу помочь сегодня?', self.ButtonsList['AdminMainMenuButtonList'])
@@ -88,8 +86,7 @@ class InformerBot:
         else:
             self.SendMessage(message, "Я не знаю такой команды! Вы можете перезапустить меня, если что-то пошло не так!", [])
             
-            msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} передал неизвесную команду: [{message.text}]'
-            print(msg)
+            msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} передал неизвестную команду: [{message.text}]'
             self.logger.warning(msg)
     
     # Primary function
@@ -110,12 +107,14 @@ class InformerBot:
     def Show_Markets_List(self, message):
         DB = DBController()
         marketsList = DB.GetAllMarkets()
-        msg = "Список актуальных маркетов:\n"
-        
-        for market in marketsList:
-            msg += f"{market['name'].capitalize()} ID: {market['market_id']}\nДата проведения: {market['start_date']}\nДата окончания: {market['end_date']}\nМесто проведения: {market['location']}\nКод маркета: `{market['hash']}`\n\n"
+        if (marketsList):
+            msg = "Список актуальных маркетов:\n"
             
-        self.SendMessage(message, f"{msg}", self.ButtonsList['AdminMainMenuButtonList'])
+            for market in marketsList:
+                msg += f"{market['name'].capitalize()} ID: {market['market_id']}\nДата проведения: {market['start_date']}\nДата окончания: {market['end_date']}\nМесто проведения: {market['location']}\nКод маркета: `{market['hash']}`\n\n"
+            self.SendMessage(message, f"{msg}", self.ButtonsList['AdminMainMenuButtonList'])
+        else:
+            self.SendMessage(message, "Данные о маркетах отсутствуют в системе!", [])
     
     def Collect_Sales(self, message):
         DB = DBController()
@@ -154,8 +153,7 @@ class InformerBot:
                 self.SendMessage(message, f"Продажа зарегистрирована!\nID: {lastID}\nСумма: {buf_sales['revenue']}\n{msgTypeSales}")
                 
                 msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новую продажу для маркета: [{buf_sales}]'
-                print(msg)
-                self.logger.warning(msg)
+                self.logger.debug(msg)
             else:
                 resultChecking = DB.CheckSalesOwner(bufNum * -1, message.chat.id)
                 
@@ -165,8 +163,7 @@ class InformerBot:
                         self.SendMessage(message, f"Продажа, зарегистрированная в {removedSales['date']} {removedSales['time']}\nc ID: {removedSales['id']}, на сумму {removedSales['revenue']} успешно удалена!")
                         
                         msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} удалил продажу для маркета: [{removedSales}]'
-                        print(msg)
-                        self.logger.warning(msg)
+                        self.logger.debug(msg)
                     else:
                         self.SendMessage(message, f"У вас нету доступа для удаления данной продажи, так как не вы добавили ее!")
                 else:
@@ -174,8 +171,7 @@ class InformerBot:
         except Exception as e:
             self.SendMessage(message, "Некорректный формат ввода!\nПожалуйста используйте числа и при необходимости обозначить наличный расчет добавляйте букву 'н' после числа!\nПримеры: '300', '450н', '600Н'", [])
             
-            msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} ввел некоректные данные о продажах [{message.text}]'
-            print(msg)
+            msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} ввел некорректные данные о продажах [{message.text}]'
             self.logger.warning(msg)
         
     def Begin_Sales_Collect(self, message):
@@ -230,7 +226,6 @@ class InformerBot:
             msg = "Неожиданная ошибка при попытке преобразовать данные о маркете! Обратитесь к администратору!"
             self.SendMessage(message, msg, [])
             
-            print(msg + f"{e}")
             self.logger.error(msg + f"{e}")
             
         try:
@@ -241,15 +236,13 @@ class InformerBot:
             msg = "Ошибка при добавлении маркета в базу данных!"
             
             self.SendMessage(message, msg, [])
-            print(msg + f"{e}")
             self.logger.error(msg + f"{e}")
             
         self.StateController.ResetAllState(message.chat.id)
         self.SendMessage(message, f"Вы успешно добавили маркет: {newMarket['name'].capitalize()}!\n\nЕго уникальный код: `{newMarket['hash']}`", [])
         
         msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новый маркет: [{newMarket}]'
-        print(msg)
-        self.logger.info(msg)
+        self.logger.debug(msg)
     
     def Begin_Market_Authorization(self, message):
         self.StateController.ResetAllState(message.chat.id)
@@ -268,8 +261,7 @@ class InformerBot:
             self.SendMessage(message, f"Выбран маркет: {market['name']}\nВы можете начать собирать продажи!", self.ButtonsList['CompleteSelectMarketButtonList'])
             
             msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} успешно авторизовался для маркета: [{market}]'
-            print(msg)
-            self.logger.warning(msg)
+            self.logger.debug(msg)
         else:
             self.SendMessage(message, f"Маркет с кодом: {message.text} не найден! Вы можете попробовать ввести код еще раз:", [])
     
@@ -277,10 +269,10 @@ class InformerBot:
         DB = DBController()
         
         if (message.text == "Доход по маркетам в прошлом месяце"):
-            self.SendMessage(message, 'Пока данный функционал отсутсвует!', [])
+            self.SendMessage(message, 'Пока данный функционал отсутствует!', [])
         
         elif (message.text == "Средний ежемесячный доход с маркетов за этот год"):
-            self.SendMessage(message, 'Пока данный функционал отсутсвует!', [])
+            self.SendMessage(message, 'Пока данный функционал отсутствует!', [])
         
         elif (message.text == "Доход со всех маркетов"):
             salesList = DB.GetAllMarketSales()
