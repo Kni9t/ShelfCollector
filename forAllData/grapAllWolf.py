@@ -13,7 +13,7 @@ SQL = DBController()
 js = JsonController('wolf_all_data.json')
 
 end_date = datetime.now()
-start_date = end_date - timedelta(days=60)
+start_date = end_date - timedelta(days=170)
 
 ranges = []
 

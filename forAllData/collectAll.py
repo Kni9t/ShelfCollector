@@ -15,4 +15,4 @@ SQL = DBController()
 
 SQL.InitMainTables()
 
-SQL.DataInsert(resultList)
+SQL.AddShelfSale(resultList)
