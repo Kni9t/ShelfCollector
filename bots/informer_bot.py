@@ -221,7 +221,10 @@ class InformerBot:
             newMarket['name'] = data[0]
             newMarket['start_date'] = str(start_date.strftime('%Y-%m-%d %H:%M'))
             newMarket['end_date'] = str(end_date.strftime('%Y-%m-%d %H:%M'))
-            newMarket['location'] = str(None)
+            if (len(data) == 4):
+                newMarket['location'] = str(data[3])
+            else:
+                newMarket['location'] = str(None)
         except Exception as e:
             msg = "Неожиданная ошибка при попытке преобразовать данные о маркете! Обратитесь к администратору!"
             self.SendMessage(message, msg, [])

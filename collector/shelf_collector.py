@@ -121,6 +121,7 @@ class ShelfCollector:
                 self.js.writeData(bufData)
                 
             return readyLines
+        
         except Exception as e:
             msg = f'При сборе данных с Полкиуса произошла ошибка! [{e}]'
                     
