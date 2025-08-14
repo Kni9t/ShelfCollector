@@ -4,6 +4,7 @@ import pyzmail
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import re
+import logging
 
 from collector.json_controller import JsonController
 
@@ -13,6 +14,8 @@ class ShelfCollector:
         self.gmailLogin = gmailLogin
         self.gmailPass = gmailPass
         self.js = JsonController('params/buf_shelf_info.json')
+        
+        self.logger = logging.getLogger('shelf_logger')
         
         bufData = dict(self.js.getData())
         
@@ -34,10 +37,16 @@ class ShelfCollector:
         for mail in mails:
             title = mail.get_subject()
             
-            print(f'Обработка письма: {title}')
+            msg = f'Обработка письма: {title}'
+            
+            print(msg)
+            self.logger.debug(msg)
             
             if not mail.html_part:
-                print(f'Письмо: {title} не содержит HTML')
+                msg = f'Письмо: {title} не содержит HTML'
+                
+                print(msg)
+                self.logger.debug(msg)
                 continue
             
             html = mail.html_part.get_payload().decode(mail.html_part.charset)
@@ -45,7 +54,10 @@ class ShelfCollector:
             tables = soup.find_all('table')
             
             if not tables:
-                print(f'Нет таблиц в письме: {title}')
+                msg = f'Нет таблиц в письме: {title}'
+                
+                print(msg)
+                self.logger.warning(msg)
                 continue
             
             rows = str(tables[9]).split('</tr>')
@@ -89,9 +101,15 @@ class ShelfCollector:
                 readyLines.append(bufLine)
             
             if (len(readyLines) == 0):
-                print(f'Данные из письма: {title} уже содержатся в БД!')
+                msg = f'Данные из письма: {title} уже содержатся в БД!'
+                
+                print(msg)
+                self.logger.debug(msg)
             else:
-                print(f'Письмо: {title} обработано успешно!')
+                msg = f'Письмо: {title} обработано успешно!'
+                
+                print(msg)
+                self.logger.info(msg)
                 
         bufData = dict(self.js.getData())
         bufData["polks"] = lastDate
@@ -109,10 +127,16 @@ class ShelfCollector:
         for mail in mails:
             title = mail.get_subject()
             
-            print(f'Обработка письма: {title}')
+            msg = f'Обработка письма: {title}'
+            
+            print(msg)
+            self.logger.debug(msg)
             
             if not mail.html_part:
-                print(f'Письмо: {title} не содержит HTML')
+                msg = f'Письмо: {title} не содержит HTML'
+                
+                print(msg)
+                self.logger.debug(msg)
                 continue
             
             html = mail.html_part.get_payload().decode(mail.html_part.charset)
@@ -120,7 +144,10 @@ class ShelfCollector:
             tables = soup.find_all('table')
             
             if not tables:
-                print(f'Нет таблиц в письме: {title}')
+                msg = f'Нет таблиц в письме: {title}'
+                
+                print(msg)
+                self.logger.warning(msg)
                 continue
             
             rows = str(tables[3]).split('</tr>')
@@ -140,7 +167,10 @@ class ShelfCollector:
                 previousDate = datetime.strptime(oldFoxDate, '%Y-%m-%d')
             
             if (datetime.strptime(lastDate, '%Y-%m-%d') <= previousDate):
-                print(f'Данные из письма: {title} уже содержатся в БД!')
+                msg = f'Данные из письма: {title} уже содержатся в БД!'
+                
+                print(msg)
+                self.logger.debug(msg)
                 continue
             
             for line in rows:
@@ -163,7 +193,10 @@ class ShelfCollector:
                 
                 readyLines.append(bufLine)
                 
-            print(f'Письмо: {title} успешно обработано!')
+            msg = f'Письмо: {title} успешно обработано!'
+            
+            print(msg)
+            self.logger.info(msg)
            
         bufData = dict(self.js.getData())
         bufData["fox"] = lastDate
@@ -174,7 +207,10 @@ class ShelfCollector:
     def CollectSalesWolf(self):
         dateTo = (datetime.now() - timedelta(days = 1)).strftime('%Y-%m-%d')
         
-        print(f'Обработка сайта: Волчок {dateTo}')
+        msg = f'Обработка сайта: Волчок {dateTo}'
+            
+        print(msg)
+        self.logger.debug(msg)
         
         oldWolfDate = dict(self.js.getData())["wolf"]
             
@@ -184,7 +220,10 @@ class ShelfCollector:
             previousDate = datetime.strptime(oldWolfDate, '%Y-%m-%d')
             
         if datetime.strptime(dateTo, '%Y-%m-%d') <= previousDate:
-            print(f'Данные с сайта Волчок за {dateTo} уже содержатся в БД!')
+            msg = f'Данные с сайта Волчок за {dateTo} уже содержатся в БД!'
+            
+            print(msg)
+            self.logger.debug(msg)
             return []
 
         url = f'{self.urlPart}&dateFrom={dateTo}&dateTo={dateTo}'
@@ -196,7 +235,10 @@ class ShelfCollector:
         row = str(table).split('<tr>')
         
         if row[0] == 'None':
-            print(f'Продажи у Волчока за {dateTo} отсутствуют!')
+            msg = f'Продажи у Волчока за {dateTo} отсутствуют!'
+            
+            print(msg)
+            self.logger.warning(msg)
             return []
         
         row.pop(0)
@@ -228,7 +270,10 @@ class ShelfCollector:
             
             readyLines.append(bufLine)
             
-        print(f'Данные с сайта Волчок за {dateTo} успешно собраны!')
+        msg = f'Данные с сайта Волчок за {dateTo} успешно собраны!'
+        
+        print(msg)
+        self.logger.debug(msg)
         
         bufData = dict(self.js.getData())
         bufData["wolf"] = dateTo
@@ -247,25 +292,31 @@ class ShelfCollector:
         return bufLine
     
     def _GetMessagesFromGmail(self, email, count = 0):
-        imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
-        imap.login(self.gmailLogin, self.gmailPass)
-        imap.select_folder('INBOX')
-        
-        query = f'from:{email} has:attachment OR is:important'
-        uids = imap.search(['X-GM-RAW', query])
-        
-        uids.reverse()
-        
-        messageList = []
-        
-        if (count > 0):
-            uids = uids[:count]
-        
-        for uid in uids:
-            raw_msg = imap.fetch([uid], ['BODY[]'])[uid][b'BODY[]']
-            message = pyzmail.PyzMessage.factory(raw_msg)
+        try:
+            imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
+            imap.login(self.gmailLogin, self.gmailPass)
+            imap.select_folder('INBOX')
             
-            messageList.append(message)
+            query = f'from:{email} has:attachment OR is:important'
+            uids = imap.search(['X-GM-RAW', query])
             
-        imap.logout()
-        return messageList
+            uids.reverse()
+            
+            messageList = []
+            
+            if (count > 0):
+                uids = uids[:count]
+            
+            for uid in uids:
+                raw_msg = imap.fetch([uid], ['BODY[]'])[uid][b'BODY[]']
+                message = pyzmail.PyzMessage.factory(raw_msg)
+                
+                messageList.append(message)
+                
+            imap.logout()
+            return messageList
+        
+        except Exception as e:
+            msg = f'Ошибка при получении письма из gmail! [{e}]'
+            print(msg)
+            self.logger.info(msg)
