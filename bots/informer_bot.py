@@ -122,23 +122,30 @@ class InformerBot:
         
         try:
             cash = False
-            
-            if (type(message.text) is str):
-                if(message.text.lower()[-1] == 'н'):
-                    bufNum = int(message.text.lower().split('н')[0])
-                    cash = True
-                else:
-                    bufNum = int(message.text)
-            else:
-                bufNum = message.text
+            inputText = str(message.text).lower()
+
+            if ('н' in inputText):
+                cash = True
+                inputText = inputText.replace('н', '')
+                
+            inputText = re.sub(r'\s+', ' ', inputText).strip()
+
+            sum = 0
+
+            for bufSum in inputText.split(' '):
+                try:
+                    sum += int(bufSum)
+                except:
+                    self.SendMessage(message, f"Ошибка чтения значения: {bufSum}! Пожалуйста удалите из него любые символы кроме цифр!")
+                    return
                 
             # market_id INTEGER, date TEXT, time TEXT, revenue INTEGER, cash TEXT, sender_id, sender_name, FOREIGN KEY(market_id) REFERENCES markets(id)
-            if (bufNum > 0):
+            if ('-' not in str(message.text)):
                 buf_sales = {
                     "market_id": market['market_id'],
                     "date": str(datetime.now().strftime('%Y-%m-%d')),
                     "time": str(datetime.now().strftime('%H:%M:%S')),
-                    "revenue": bufNum,
+                    "revenue": sum,
                     "cash": cash,
                     "sender_id": str(message.chat.id),
                     "sender_name": str(message.from_user.username)
@@ -155,11 +162,23 @@ class InformerBot:
                 msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новую продажу для маркета: [{buf_sales}]'
                 self.logger.debug(msg)
             else:
-                resultChecking = DB.CheckSalesOwner(bufNum * -1, message.chat.id)
+                bufID = 0
+                try:
+                    pattern = re.compile(r"^-?\d+$")
+                    
+                    if bool(pattern.fullmatch(str(message.text).strip())):
+                        bufID = int(bufSum)
+                    else:
+                        raise Exception
+                except:
+                    self.SendMessage(message, f"Обнаружен ID продажи: [{message.text}], но в процессе его преобразования произошла ошибка! Пожалуйста убедитесь, что вы отправили только одно отрицательное число!")
+                    return
+                
+                resultChecking = DB.CheckSalesOwner(bufID * -1, message.chat.id)
                 
                 if (resultChecking is not None):
                     if(resultChecking):
-                        removedSales = DB.RemoveMarketSaleById(bufNum * -1)
+                        removedSales = DB.RemoveMarketSaleById(bufID * -1)
                         self.SendMessage(message, f"Продажа, зарегистрированная в {removedSales['date']} {removedSales['time']}\nc ID: {removedSales['id']}, на сумму {removedSales['revenue']} успешно удалена!")
                         
                         msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} удалил продажу для маркета: [{removedSales}]'
@@ -167,7 +186,7 @@ class InformerBot:
                     else:
                         self.SendMessage(message, f"У вас нету доступа для удаления данной продажи, так как не вы добавили ее!")
                 else:
-                    self.SendMessage(message, f"Продажи с ID:{bufNum * -1} не существует!")
+                    self.SendMessage(message, f"Продажи с ID:{bufID * -1} не существует!")
         except Exception as e:
             self.SendMessage(message, "Некорректный формат ввода!\nПожалуйста используйте числа и при необходимости обозначить наличный расчет добавляйте букву 'н' после числа!\nПримеры: '300', '450н', '600Н'", [])
             
