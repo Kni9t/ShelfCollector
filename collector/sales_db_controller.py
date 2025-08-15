@@ -1,6 +1,8 @@
 import sqlite3
 import logging
 
+from datetime import datetime, timedelta
+
 # Shelf id:
 # Polkius - 1
 # Wolf - 2
@@ -162,6 +164,52 @@ class DBController():
         
         except Exception as e:
             msg = f'Ошибка получении списка всех маркетов! [{e}]'
+            self.logger.error(msg)
+            return None
+        
+    def CheckMarketRunning(self, hash, date = datetime.now()):
+        try:
+            market = self.CheckMarketsHash(hash)
+            start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
+            end_date = datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)
+            
+            if (start_date <= date <= end_date):
+                return True
+            else:
+                return False
+            
+        except Exception as e:
+            msg = f'Ошибка при проверке CheckMarketRunning! [{e}]'
+            self.logger.error(msg)
+            return None
+        
+    def CheckEndMarket(self, hash, date = datetime.now()):
+        try:
+            market = self.CheckMarketsHash(hash)
+            end_date = datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)
+            
+            if (date >= end_date):
+                return True
+            else:
+                return False
+            
+        except Exception as e:
+            msg = f'Ошибка при проверке CheckEndMarket! [{e}]'
+            self.logger.error(msg)
+            return None
+    
+    def CheckMarketNotStarted(self, hash, date = datetime.now()):
+        try:
+            market = self.CheckMarketsHash(hash)
+            start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
+            
+            if (start_date >= date):
+                return True
+            else:
+                return False
+            
+        except Exception as e:
+            msg = f'Ошибка при проверке CheckMarketNotStarted! [{e}]'
             self.logger.error(msg)
             return None
         
