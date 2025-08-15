@@ -209,27 +209,45 @@ class InformerBot:
         try:
             start_date = datetime.strptime(data[1], "%Y-%m-%d-%H:%M")
         except Exception as e:
-            self.SendMessage(message, f"Некорректный формат даты начала маркета! Ожидался формат: `2025-07-20-12:00` {e}")
+            self.SendMessage(message, f"Некорректный формат даты начала маркета! Ожидался формат: `2025-07-20-12:00`")
+            return
             
         try:
             end_date = datetime.strptime(data[2], "%Y-%m-%d-%H:%M")
         except Exception as e:
-            self.SendMessage(message, f"Некорректный формат даты окончания маркета! Ожидался формат: `2025-07-20-12:00` {e}")
+            self.SendMessage(message, f"Некорректный формат даты окончания маркета! Ожидался формат: `2025-07-20-12:00`")
+            return
+        
+        try:
+            location = ''
+            for st in data[3:]:
+                location += st + ' '
+
+            data = data[:3]
+            
+            if (location != ''):
+                data.append(location.strip())
+            else:
+                data.append(str(None))
+        except Exception as e:
+            msg = "Не удалось преобразовать адрес! Попробуйте удалить спец символы из адреса или обратитесь к администратору!"
+            
+            self.SendMessage(message, msg)
+            self.logger.warning(msg + f" [{e}]")
+            return
         
         try:
             newMarket['hash'] = str(hashlib.sha256(str(datetime.now()).encode()).hexdigest()[:10])
             newMarket['name'] = data[0]
             newMarket['start_date'] = str(start_date.strftime('%Y-%m-%d %H:%M'))
             newMarket['end_date'] = str(end_date.strftime('%Y-%m-%d %H:%M'))
-            if (len(data) == 4):
-                newMarket['location'] = str(data[3])
-            else:
-                newMarket['location'] = str(None)
+            newMarket['location'] = data[3]
         except Exception as e:
             msg = "Неожиданная ошибка при попытке преобразовать данные о маркете! Обратитесь к администратору!"
             self.SendMessage(message, msg, [])
             
-            self.logger.error(msg + f"{e}")
+            self.logger.error(msg + f" [{e}]")
+            return
             
         DB = DBController()
         result = DB.AddMarkets(newMarket)
@@ -239,6 +257,7 @@ class InformerBot:
         
             self.SendMessage(message, msg, [])
             self.logger.error(msg)
+            return
         else:
             self.StateController.ResetAllState(message.chat.id)
             self.SendMessage(message, f"Вы успешно добавили маркет: {newMarket['name'].capitalize()}!\n\nЕго уникальный код: `{newMarket['hash']}`", [])
