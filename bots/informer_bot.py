@@ -136,7 +136,7 @@ class InformerBot:
                 try:
                     sum += int(bufSum)
                 except:
-                    self.SendMessage(message, f"Ошибка чтения значения: {bufSum}! Пожалуйста удалите из него любые символы кроме цифр!")
+                    self.SendMessage(message, f"Произошла ошибка преобразования значения: {bufSum}! Пожалуйста удалите из него любые символы кроме цифр!")
                     return
                 
             # market_id INTEGER, date TEXT, time TEXT, revenue INTEGER, cash TEXT, sender_id, sender_name, FOREIGN KEY(market_id) REFERENCES markets(id)
@@ -157,10 +157,14 @@ class InformerBot:
                 else:
                     msgTypeSales = 'Оплата: Онлайн перевод'
                     
-                self.SendMessage(message, f"Продажа зарегистрирована!\nID: {lastID}\nСумма: {buf_sales['revenue']}\n{msgTypeSales}")
+                if (lastID is not None):
+                    self.SendMessage(message, f"Продажа зарегистрирована!\nID: {lastID}\nСумма: {buf_sales['revenue']}\n{msgTypeSales}")
                 
-                msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новую продажу для маркета: [{buf_sales}]'
-                self.logger.debug(msg)
+                    msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новую продажу для маркета: [{buf_sales}]'
+                    self.logger.debug(msg)
+                else:
+                    self.SendMessage(message, f"Произошла ошибка добавления записи!")
+                    self.logger.error(f'Пользователь {message.from_user.username} из чата: {message.chat.id} вызвал ошибку в БД при добавлении: [{buf_sales}]')
             else:
                 bufID = 0
                 try:
@@ -188,9 +192,9 @@ class InformerBot:
                 else:
                     self.SendMessage(message, f"Продажи с ID:{bufID * -1} не существует!")
         except Exception as e:
-            self.SendMessage(message, "Некорректный формат ввода!\nПожалуйста используйте числа и при необходимости обозначить наличный расчет добавляйте букву 'н' после числа!\nПримеры: '300', '450н', '600Н'", [])
+            self.SendMessage(message, "Произошла ошибка получения значений продажи! Обратитесь к администратору!")
             
-            msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} ввел некорректные данные о продажах [{message.text}]'
+            msg = f'У пользователя {message.from_user.username} из чата: {message.chat.id} при введении строки [{message.text}] произошла ошибка: [{e}]'
             self.logger.warning(msg)
         
     def Begin_Sales_Collect(self, message):
@@ -203,7 +207,7 @@ class InformerBot:
             self.StateController.SetUserStats(message.chat.id, 'salesCollectState', True)
             
             self.SendMessage(message, f"Вы успешно запустили сбор данных о продажах для маркета: {market['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.")
-            self.SendMessage(message, 'Все зарегистрированные платежи считаются полученными по переводу. Если необходимо указать, что оплата была произведена наличными добавьте строго после суммы букву заглавную или прописную букву Н.\nНапример так: "600н"\nИли так: "500Н"')
+            self.SendMessage(message, 'Каждое сообщение соответствует одной продаже на маркете. В сообщении боту вы можете записать ее как одним числом, так и несколькими числами через символ пробела. В случае указания нескольких чисел, бот автоматически просуммирует их в одну итоговую продажу.\nПо умолчанию платежи считаются полученными по переводу. Если необходимо указать, что оплата была произведена наличными добавьте в сообщение заглавную или прописную букву "Н" из русского алфавита.\nПримеры:\nСообщение -> запись у бота\n150 -> 150 руб. переводом\n150н -> 150 руб. наличными\n100 200 -> 300 руб. переводом\n150 300н -> 450 руб. наличными\n-4 -> удалить запись с id -4')
             self.SendMessage(message, f"Каждой продаже присваивается уникальный ID. Если вы хотите удалить какую-либо продажу, напишите боту ID продажи добавив знак - в начале.", [])
         else:
             self.SendMessage(message, "Невозможно внести продажи, так как вы не выбрали маркет!", self.ButtonsList['OfferSelectMarketButtonList'])
