@@ -88,4 +88,5 @@ while True:
         
         print(f'{datetime.now()} - {msg}')
         logger.error(msg)
-        sys.exit(1)
+        
+        time.sleep(5)
