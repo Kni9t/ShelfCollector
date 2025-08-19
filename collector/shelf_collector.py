@@ -63,12 +63,19 @@ class ShelfCollector:
                     self.logger.warning(msg)
                     continue
                 
+                if (len(tables) < 9):
+                    msg = f'Нету таблицы с данными о продажах в письме: {title}'
+                    
+                    print(msg)
+                    self.logger.warning(msg)
+                    continue
+                
                 rows = str(tables[9]).split('</tr>')
                 rows = rows[4:-2]
                 
                 oldPolksDate = dict(self.js.getData())["polks"]
                 
-                if (oldPolksDate == 'None'):
+                if (str(oldPolksDate) == 'None'):
                     previousDate = datetime.strptime('2000-01-01', '%Y-%m-%d')
                 else:
                     previousDate = datetime.strptime(oldPolksDate, '%Y-%m-%d')
@@ -175,7 +182,7 @@ class ShelfCollector:
                 
                 oldFoxDate = dict(self.js.getData())["fox"]
                 
-                if (oldFoxDate == 'None'):
+                if (str(oldFoxDate) == 'None'):
                     previousDate = datetime.strptime('2000-01-01', '%Y-%m-%d')
                 else:
                     previousDate = datetime.strptime(oldFoxDate, '%Y-%m-%d')
@@ -237,7 +244,7 @@ class ShelfCollector:
             
             oldWolfDate = dict(self.js.getData())["wolf"]
                 
-            if (oldWolfDate == 'None'):
+            if (str(oldWolfDate) == "None"):
                 previousDate = datetime.strptime('2000-01-01', '%Y-%m-%d')
             else:
                 previousDate = datetime.strptime(oldWolfDate, '%Y-%m-%d')
