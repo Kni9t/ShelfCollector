@@ -64,7 +64,7 @@ class ShelfCollector:
                     continue
                 
                 if (len(tables) < 9):
-                    msg = f'Нету таблицы с данными о продажах в письме: {title}'
+                    msg = f'Нет таблицы с данными о продажах в письме: {title}'
                     
                     print(msg)
                     self.logger.warning(msg)
