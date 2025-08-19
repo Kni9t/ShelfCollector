@@ -167,16 +167,45 @@ class DBController():
             self.logger.error(msg)
             return None
         
+    def GetMarketsDate(self, marketData: str|dict):
+        try:
+            if (type(marketData) is str):
+                market = self.CheckMarketsHash(marketData)
+                
+                if (market):
+                    start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
+                    end_date = datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)
+                else:
+                    msg = f'Ошибка при выполнении GetMarketsDate! [Маркет с hash {marketData} не найден!]'
+                    self.logger.error(msg)
+                    return None
+                
+            elif (type(hash) is dict):
+                start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
+                end_date = datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)
+            else:
+                msg = f'Ошибка при выполнении GetMarketsDate! [marketData не является str или dict!]'
+                self.logger.error(msg)
+                return None
+            
+            return {
+                'start_date': start_date,
+                'end_date': end_date
+                }
+        
+        except Exception as e:
+            msg = f'Ошибка при выполнении GetMarketsDate! [{e}]'
+            self.logger.error(msg)
+            return None
+        
     def CheckMarketRunning(self, hash, date = None):
         try:
             if (date is None):
                 date = datetime.now()
+                
+            dateDict = self.GetMarketsDate(hash)
             
-            market = self.CheckMarketsHash(hash)
-            start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
-            end_date = datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)
-            
-            if (start_date <= date <= end_date):
+            if (dateDict['start_date'] <= date <= dateDict['end_date']):
                 return True
             else:
                 return False
@@ -191,10 +220,9 @@ class DBController():
             if (date is None):
                 date = datetime.now()
                 
-            market = self.CheckMarketsHash(hash)
-            end_date = datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)
+            dateDict = self.GetMarketsDate(hash)
             
-            if (date >= end_date):
+            if (date >= dateDict['end_date']):
                 return True
             else:
                 return False
@@ -209,10 +237,9 @@ class DBController():
             if (date is None):
                 date = datetime.now()
                 
-            market = self.CheckMarketsHash(hash)
-            start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
+            dateDict = self.GetMarketsDate(hash)
             
-            if (start_date >= date):
+            if (dateDict['start_date'] >= date):
                 return True
             else:
                 return False
