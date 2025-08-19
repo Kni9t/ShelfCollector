@@ -29,6 +29,7 @@ class StateController(JsonController):
                 'authorizationState': False,
                 'salesCollectState': False,
                 'addNewMarket': False,
+                'market_detail': False,
                 'selectedMarket': None
             }
             dateFromFiles[idUser][stats] = value
@@ -39,6 +40,7 @@ class StateController(JsonController):
         self.SetUserStats(idUser, 'authorizationState', False)
         self.SetUserStats(idUser, 'salesCollectState', False)
         self.SetUserStats(idUser, 'addNewMarket', False)
+        self.SetUserStats(idUser, 'market_detail', False)
     
     def GetState(self, idUser, state):
         idUser = str(idUser)

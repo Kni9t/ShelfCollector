@@ -62,6 +62,9 @@ class InformerBot:
         elif (message.text != '') and (self.StateController.GetState(message.chat.id, 'salesCollectState')):
             self.Sales_Collect(message)
             
+        elif (message.text != '') and (self.StateController.GetState(message.chat.id, 'market_detail')):
+            self.Get_Market_Sales_Detail(message)
+            
         elif (message.text == "Начать сбор продаж"):
             self.Begin_Sales_Collect(message)
             
@@ -342,6 +345,39 @@ class InformerBot:
         else:
             self.SendMessage(message, f"Маркет с кодом: {message.text} не найден! Вы можете попробовать ввести код еще раз или же сбросить ввод кода и нажать /start!", [])
     
+    def Get_Market_Sales_Detail(self, message):
+        DB = DBController()
+        market = DB.CheckMarketsHash(message.text)
+
+        if market:
+            salesDict = DB.GetMarketSaleByHash(message.text)
+            
+            if (salesDict):
+                self.StateController.ResetAllState(message.chat.id)
+                msg = f'Продажи собранные на маркете: {market['name']} c {market['start_date']} по {market['end_date']}\n\n'
+                
+                for date, saleList in salesDict.items():
+                    msg += f'{date}\n'
+                
+                    for sales in saleList:
+                        if (len(msg) >= 3900):
+                            self.SendMessage(message, f"{msg}", [])
+                            msg = 'Продолжение предыдущего сообщения...\n'
+                            
+                        msg += f'{sales['time']} - {sales['revenue']} руб.'
+                        
+                        if (sales['cash']):
+                            msg += f' наличные'
+                        
+                        msg += '\n'
+                        
+                    self.SendMessage(message, f"{msg}", [])
+                    msg = ''
+            else:
+                self.SendMessage(message, "Данные о продажах для этого маркета отсутствуют в системе!", [])
+        else:
+            self.SendMessage(message, f"Маркет с кодом: {message.text} не найден!", [])
+    
     def Get_Markets_Detail(self, message):
         DB = DBController()
         
@@ -352,8 +388,11 @@ class InformerBot:
         if (message.text == "Доход по маркетам в прошлом месяце"):
             self.SendMessage(message, 'Пока данный функционал отсутствует!', [])
         
-        elif (message.text == "Средний ежемесячный доход с маркетов за этот год"):
-            self.SendMessage(message, 'Пока данный функционал отсутствует!', [])
+        elif (message.text == "Детализация продаж по маркету"):
+            self.StateController.ResetAllState(message.chat.id)
+            self.StateController.SetUserStats(message.chat.id, 'market_detail', True)
+            
+            self.SendMessage(message, 'Введите код маркета, для которого необходимо получить детализацию:', [])
         
         elif (message.text == "Доход со всех маркетов"):
             salesList = DB.GetAllMarketSales()

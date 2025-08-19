@@ -1,5 +1,6 @@
 import sqlite3
 import logging
+from collections import defaultdict
 
 from datetime import datetime, timedelta
 
@@ -115,6 +116,39 @@ class DBController():
         
         except Exception as e:
             msg = f'Ошибка получении всех продаж с маркета! [{e}]'
+            self.logger.error(msg)
+            return None
+        
+    def GetMarketSaleByHash(self, Hash: str):
+        try:
+            if (Hash != ''):
+                self.cursor.execute(f"SELECT * FROM market_sales where market_id = (select market_id from markets where hash = '{Hash}');")
+                rows = self.cursor.fetchall()
+                
+                salesList = []
+                
+                for row in rows:
+                    bufSales = {
+                        "id": int(row[0]),
+                        "market_id": int(row[1]),
+                        "date": str(row[2]),
+                        "time": str(row[3]),
+                        "revenue": int(row[4]),
+                        "cash":  True if str(row[5]) == 'True' else False,
+                        "sender_id": int(row[6]),
+                        "sender_name": str(row[7]),
+                    }
+                    salesList.append(bufSales)
+                    
+                grouped = defaultdict(list)
+                for record in salesList:
+                    grouped[record["date"]].append(record)
+                
+                return grouped
+            return None
+        
+        except Exception as e:
+            msg = f'Ошибка получении продажи маркета по ID! [{e}]'
             self.logger.error(msg)
             return None
     
