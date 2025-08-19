@@ -13,6 +13,7 @@ try:
     logging.basicConfig(filename = 'collector.log', encoding = 'utf-8', level=logging.DEBUG, format='%(name)s: %(asctime)s - %(levelname)s - %(filename)s - %(module)s - %(lineno)d - %(message)s')
     logging.getLogger("imapclient.imaplib").setLevel(logging.WARNING)
     logging.getLogger("imapclient.imapclient").setLevel(logging.WARNING)
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
     
     logger = logging.getLogger('main_logger')
     
@@ -58,6 +59,7 @@ SQL.InitMainTables()
 while True:
     try:
         dataList = []
+        
         dataList.append(Collector.CollectSalesWolf())
         logger.info(f'Данные с полки Волчка успешно собраны!')
         
@@ -68,7 +70,7 @@ while True:
         logger.info(f'Данные с Лисьей полки успешно собраны!')
         
         for data in dataList:
-            if data != []:
+            if (data != []) and (data is not None):
                 SQL.AddShelfSale(data)
         
         msg = f'Данные за сегодня успешно собраны'
