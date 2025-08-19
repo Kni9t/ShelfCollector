@@ -54,13 +54,13 @@ class InformerBot:
             self.SendMessage(message, f"Какую информацию вы хотели бы получить?", self.ButtonsList['DetailMarketButtonList'])
             
         elif (message.text != '') and (self.StateController.GetState(message.chat.id, 'authorizationState')):
-            self.Complete_Market_Authorization(message)
+            self.Market_Authorization(message)
             
         elif (message.text != '') and (self.StateController.GetState(message.chat.id, 'addNewMarket')):
             self.Add_New_Market(message)
             
         elif (message.text != '') and (self.StateController.GetState(message.chat.id, 'salesCollectState')):
-            self.Collect_Sales(message)
+            self.Sales_Collect(message)
             
         elif (message.text == "Начать сбор продаж"):
             self.Begin_Sales_Collect(message)
@@ -121,11 +121,37 @@ class InformerBot:
             self.SendMessage(message, f"{msg}", self.ButtonsList['AdminMainMenuButtonList'])
         else:
             self.SendMessage(message, "Данные о маркетах отсутствуют в системе!", [])
+            
+    def Begin_Sales_Collect(self, message):
+        marketHash = self.StateController.GetState(message.chat.id, 'selectedMarket')
+        DB = DBController()
+        market = DB.CheckMarketsHash(marketHash)
+        
+        if marketHash:
+            if market:
+                start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
+                
+                if (DB.CheckMarketRunning(marketHash)):
+                    self.StateController.ResetAllState(message.chat.id)
+                    self.StateController.SetUserStats(message.chat.id, 'salesCollectState', True)
+                    
+                    self.SendMessage(message, f"Вы успешно запустили сбор данных о продажах для маркета: {market['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.")
+                    self.SendMessage(message, 'Каждое сообщение соответствует одной продаже на маркете. В сообщении боту вы можете записать ее как одним числом, так и несколькими числами через символ пробела. В случае указания нескольких чисел, бот автоматически просуммирует их в одну итоговую продажу.\nПо умолчанию платежи считаются полученными по переводу. Если необходимо указать, что оплата была произведена наличными добавьте в сообщение заглавную или прописную букву "Н" из русского алфавита.\nПримеры:\nСообщение -> запись у бота\n150 -> 150 руб. переводом\n150н -> 150 руб. наличными\n100 200 -> 300 руб. переводом\n150 300н -> 450 руб. наличными\n-4 -> удалить запись с id -4')
+                    self.SendMessage(message, f"Каждой продаже присваивается уникальный ID. Если вы хотите удалить какую-либо продажу, напишите боту ID продажи добавив знак - в начале.", [])
+                else:
+                    if (start_date >= datetime.now()):
+                        self.SendMessage(message, f"Маркет: {market['name']}, еще на начался! Вы сможете начать записывать продажи после: {start_date}", [])
+                    else:
+                        self.SendMessage(message, f"Маркет: {market['name']}, уже закончился!", [])
+            else:
+                self.SendMessage(message, "Невозможно внести продажи, так как данные по авторизированному маркету отсутствуют в системе!", self.ButtonsList['OfferSelectMarketButtonList'])
+        else:
+            self.SendMessage(message, "Невозможно внести продажи, так как вы не выбрали маркет!", self.ButtonsList['OfferSelectMarketButtonList'])
     
-    def Collect_Sales(self, message):
+    def Sales_Collect(self, message):
         DB = DBController()
         market = DB.CheckMarketsHash(self.StateController.GetState(message.chat.id, 'selectedMarket'))
-        
+
         if market:
             if (not DB.CheckMarketRunning(self.StateController.GetState(message.chat.id, 'selectedMarket'))):
                 self.SendMessage(message, f"Для маркета: {market['name']} можно вносить продажи только в период с {datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)} по {datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)}", [])
@@ -212,32 +238,6 @@ class InformerBot:
             
             msg = f'У пользователя {message.from_user.username} из чата: {message.chat.id} при введении строки [{message.text}] произошла ошибка: [{e}]'
             self.logger.warning(msg)
-        
-    def Begin_Sales_Collect(self, message):
-        marketHash = self.StateController.GetState(message.chat.id, 'selectedMarket')
-        DB = DBController()
-        market = DB.CheckMarketsHash(marketHash)
-        
-        if marketHash:
-            if market:
-                start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
-                
-                if (DB.CheckMarketRunning(marketHash)):
-                    self.StateController.ResetAllState(message.chat.id)
-                    self.StateController.SetUserStats(message.chat.id, 'salesCollectState', True)
-                    
-                    self.SendMessage(message, f"Вы успешно запустили сбор данных о продажах для маркета: {market['name']}\nТеперь вы можете писать сумму в чат и она будет автоматически добавятся к списку продаж на маркете!\nЕсли вам нужно прекратить сбор данных, просто напишите команду: /start, или нажмите на кнопку ниже.")
-                    self.SendMessage(message, 'Каждое сообщение соответствует одной продаже на маркете. В сообщении боту вы можете записать ее как одним числом, так и несколькими числами через символ пробела. В случае указания нескольких чисел, бот автоматически просуммирует их в одну итоговую продажу.\nПо умолчанию платежи считаются полученными по переводу. Если необходимо указать, что оплата была произведена наличными добавьте в сообщение заглавную или прописную букву "Н" из русского алфавита.\nПримеры:\nСообщение -> запись у бота\n150 -> 150 руб. переводом\n150н -> 150 руб. наличными\n100 200 -> 300 руб. переводом\n150 300н -> 450 руб. наличными\n-4 -> удалить запись с id -4')
-                    self.SendMessage(message, f"Каждой продаже присваивается уникальный ID. Если вы хотите удалить какую-либо продажу, напишите боту ID продажи добавив знак - в начале.", [])
-                else:
-                    if (start_date >= datetime.now()):
-                        self.SendMessage(message, f"Маркет: {market['name']}, еще на начался! Вы сможете начать записывать продажи после: {start_date}", [])
-                    else:
-                        self.SendMessage(message, f"Маркет: {market['name']}, уже закончился!", [])
-            else:
-                self.SendMessage(message, "Невозможно внести продажи, так как данные по авторизированному маркету отсутствуют в системе!", self.ButtonsList['OfferSelectMarketButtonList'])
-        else:
-            self.SendMessage(message, "Невозможно внести продажи, так как вы не выбрали маркет!", self.ButtonsList['OfferSelectMarketButtonList'])
     
     def Begin_Add_New_Market(self, message):
         self.StateController.ResetAllState(message.chat.id)
@@ -321,7 +321,7 @@ class InformerBot:
         
         self.SendMessage(message, "Вам необходимо указать для какого маркета регистрировать продажи. Для этого отправьте уникальный код маркета в чат.\nЕсли необходимо, вы можете перезапустить бота с помощью кнопки start.", [])
         
-    def Complete_Market_Authorization(self, message):
+    def Market_Authorization(self, message):
         DB = DBController()
         
         market = DB.CheckMarketsHash(str(message.text))
