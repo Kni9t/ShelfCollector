@@ -1,5 +1,6 @@
 __pycache__/
 *.json
+*.log
 sales.db
 buf_shelf_info.txt
 
