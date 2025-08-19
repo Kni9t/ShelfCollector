@@ -167,8 +167,11 @@ class DBController():
             self.logger.error(msg)
             return None
         
-    def CheckMarketRunning(self, hash, date = datetime.now()):
+    def CheckMarketRunning(self, hash, date = None):
         try:
+            if (date is None):
+                date = datetime.now()
+            
             market = self.CheckMarketsHash(hash)
             start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
             end_date = datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)
@@ -183,8 +186,11 @@ class DBController():
             self.logger.error(msg)
             return None
         
-    def CheckEndMarket(self, hash, date = datetime.now()):
+    def CheckEndMarket(self, hash, date = None):
         try:
+            if (date is None):
+                date = datetime.now()
+                
             market = self.CheckMarketsHash(hash)
             end_date = datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)
             
@@ -198,8 +204,11 @@ class DBController():
             self.logger.error(msg)
             return None
     
-    def CheckMarketNotStarted(self, hash, date = datetime.now()):
+    def CheckMarketNotStarted(self, hash, date = None):
         try:
+            if (date is None):
+                date = datetime.now()
+                
             market = self.CheckMarketsHash(hash)
             start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
             

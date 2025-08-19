@@ -124,7 +124,6 @@ class InformerBot:
         market = DB.CheckMarketsHash(self.StateController.GetState(message.chat.id, 'selectedMarket'))
         
         if market:
-            pass
             if (not DB.CheckMarketRunning(self.StateController.GetState(message.chat.id, 'selectedMarket'))):
                 self.SendMessage(message, f"Для маркета: {market['name']} можно вносить продажи только в период с {datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)} по {datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)}", [])
                 return
@@ -219,7 +218,7 @@ class InformerBot:
         if marketHash:
             start_date = datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)
             
-            if (DB.CheckMarketRunning(self.StateController.GetState(message.chat.id, 'selectedMarket'))):
+            if (DB.CheckMarketRunning(marketHash)):
                 self.StateController.ResetAllState(message.chat.id)
                 self.StateController.SetUserStats(message.chat.id, 'salesCollectState', True)
                 
