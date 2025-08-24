@@ -415,31 +415,49 @@ class InformerBot:
             rows = DB.SendQuery(query)
             
             if (rows):
-                resultString = f'Данные на месяц {date} в формате:\nдень, полка, суммарный доход, число продаж\n\n'
+                resultString = f'Данные на месяц {date}:\n\n'
             
                 for row in rows:
                     resultString += f'{row[0]} - {row[1]} - {row[2]} руб. - {row[3]} шт.\n'
                     
-                self.SendMessage(message, f'{resultString}', self.ButtonsList['AdminMainMenuButtonList'])
+                self.SendMessage(message, f'{resultString}', [])
             else:
                 self.SendMessage(message, "Данные о полках отсутствуют в системе!", [])
         
         elif (message.text == "Продажи по всем месяцам в этом году"):
-            date = datetime.now().strftime('%Y')
-            query = f"SELECT strftime('%Y-%m', s.date) AS month, sh.name AS shelf_name, SUM(s.revenue) AS total_revenue, COUNT(*) AS num_sales FROM sales s JOIN shelves sh ON s.shelf_id = sh.shelf_id WHERE strftime('%Y', s.date) = '{date}' GROUP BY month, sh.name ORDER BY month, sh.name;"
+            year = datetime.now().strftime('%Y')
             
             DB = DBController()
-            rows = DB.SendQuery(query)
+            salesDict = DB.GetAllShelfSaleByYear(year)
             
-            if (rows):
-                resultString = f'Данные на {date} год в формате:\nмесяц, полка, суммарный доход, число продаж\n\n'
-            
-                for row in rows:
-                    resultString += f'{row[0]} - {row[1]} - {row[2]} руб. - {row[3]} шт.\n'
+            if (salesDict):
+                resultString = f'Данные на {year} год в формате:\nмесяц, полка, суммарный доход, число продаж\n\n'
+                
+                yearRevenue = 0
+                yearCount = 0
+                
+                for date, saleList in salesDict.items():
+                    resultString += f'*{date}*\n'
                     
-                self.SendMessage(message, f'{resultString}', self.ButtonsList['AdminMainMenuButtonList'])
+                    totalRevenue = 0
+                    totalCount = 0
+            
+                    for sale in saleList:
+                        resultString += f'{sale['name']} - {sale['revenue']} руб. - {sale['count']} шт.\n'
+                        totalRevenue += sale['revenue']
+                        totalCount += sale['count']
+                    
+                    yearRevenue += totalRevenue
+                    yearCount += totalCount
+                    
+                    resultString += f'\n{'Итого:'} *{totalRevenue}* руб. - *{totalCount}* шт.\n'
+                    resultString += f'———————————————————\n\n'
+                    
+                resultString += f'{'Годовой итог:'} *{yearRevenue}* руб. - *{yearCount}* шт.\n\n'
+                
+                self.SendMessage(message, f'{resultString}', [])
             else:
-                self.SendMessage(message, "Данные о полках отсутствуют в системе!", [])
+                self.SendMessage(message, "Данные о продажах на полках отсутствуют в системе!", [])
             
         elif (message.text == "Продажи за прошлый день"):
             date = (datetime.now() - timedelta(days = 1)).strftime('%Y-%m-%d')
@@ -457,7 +475,7 @@ class InformerBot:
                     for row in rows:
                         resultString += f'{row[0]} - {row[1]} руб.\n'
                         
-                self.SendMessage(message, f'{resultString}', self.ButtonsList['AdminMainMenuButtonList'])
+                self.SendMessage(message, f'{resultString}', [])
             else:
                 self.SendMessage(message, "Данные о полках отсутствуют в системе!", [])
             
@@ -478,7 +496,7 @@ class InformerBot:
                     
                 resultString += f'\nПо всем полкам суммарно: {round(totalAverage, 2)} руб.'
                 
-                self.SendMessage(message, f'{resultString}', self.ButtonsList['AdminMainMenuButtonList'])
+                self.SendMessage(message, f'{resultString}', [])
             else:
                 self.SendMessage(message, "Данные о полках отсутствуют в системе!", [])
     

@@ -119,13 +119,43 @@ class DBController():
             self.logger.error(msg)
             return None
         
+    def GetAllShelfSaleByYear(self, year = None):
+        try:
+            if (year is None):
+                year = datetime.now().strftime('%Y')
+                
+            query = f"SELECT strftime('%Y-%m', s.date) AS month, sh.name AS shelf_name, SUM(s.revenue) AS total_revenue, COUNT(*) AS num_sales FROM sales s JOIN shelves sh ON s.shelf_id = sh.shelf_id WHERE strftime('%Y', s.date) = '{year}' GROUP BY month, sh.name ORDER BY month, sh.name;"
+            
+            saleList = []
+            
+            rows = self.SendQuery(query)
+            
+            for row in rows:
+                saleList.append({
+                    "date": str(row[0]),
+                    "name": str(row[1]),
+                    "revenue": int(row[2]),
+                    "count": int(row[3]),
+                })
+            
+            grouped = defaultdict(list)
+            for record in saleList:
+                grouped[record["date"]].append(record)
+            
+            return grouped
+        
+        except Exception as e:
+            msg = f'Ошибка при выполнении GetAllShelfSaleByYear! [{e}]'
+            self.logger.error(msg)
+            return None
+    
     def GetMarketSaleByHash(self, Hash: str):
         try:
             if (Hash != ''):
                 self.cursor.execute(f"SELECT * FROM market_sales where market_id = (select market_id from markets where hash = '{Hash}');")
                 rows = self.cursor.fetchall()
                 
-                salesList = []
+                saleList = []
                 
                 for row in rows:
                     bufSales = {
@@ -138,10 +168,10 @@ class DBController():
                         "sender_id": int(row[6]),
                         "sender_name": str(row[7]),
                     }
-                    salesList.append(bufSales)
+                    saleList.append(bufSales)
                     
                 grouped = defaultdict(list)
-                for record in salesList:
+                for record in saleList:
                     grouped[record["date"]].append(record)
                 
                 return grouped
