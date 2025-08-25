@@ -124,7 +124,7 @@ class DBController():
             if (year is None):
                 year = datetime.now().strftime('%Y')
                 
-            query = f"SELECT strftime('%Y-%m', s.date) AS month, sh.name AS shelf_name, SUM(s.revenue) AS total_revenue, COUNT(*) AS num_sales FROM sales s JOIN shelves sh ON s.shelf_id = sh.shelf_id WHERE strftime('%Y', s.date) = '{year}' GROUP BY month, sh.name ORDER BY month, sh.name;"
+            query = f"SELECT strftime('%Y-%m', s.date) AS month, sh.name AS shelf_name, SUM(s.revenue) AS total_revenue, SUM(s.count) AS num_sales FROM sales s JOIN shelves sh ON s.shelf_id = sh.shelf_id WHERE strftime('%Y', s.date) = '{year}' GROUP BY month, sh.name ORDER BY month, sh.name;"
             
             saleList = []
             
