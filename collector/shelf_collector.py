@@ -195,20 +195,19 @@ class ShelfCollector:
                     continue
                 
                 for line in rows:
-                    cleaned_text = re.sub(r'<.*?>', '', line).strip()
-                    cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
-
-                    spitedStr = cleaned_text.split(' ')
+                    lineList = []
+                    contentLine = line.split('<td class="R8C1">')
                     
-                    name = ''
-                    for namePart in spitedStr[1:-4:1]:
-                        name += namePart + ' '
+                    for content in contentLine:
+                        content = re.sub(r'<.*?>', '', content).strip()
+                        content = re.sub(r'\s+', ' ', content).strip()
+                        lineList.append(content)
                     
                     bufLine = self._createDict(
                         shelf_id = 3,
-                        name = name,
-                        count = spitedStr[-4],
-                        revenue = spitedStr[-1],
+                        name = re.sub(r'^\d+(?:\.\d+)*\.\s*', '', lineList[0]),
+                        count = re.sub(r'\s+', '', lineList[1]),
+                        revenue = re.sub(r'\s+', '', lineList[-1]),
                         date = lastDate,
                     )
                     
