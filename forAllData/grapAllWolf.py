@@ -9,11 +9,10 @@ import sys
 from collector.sales_db_controller import DBController
 from collector.json_controller import JsonController
 
-SQL = DBController()
 js = JsonController('wolf_all_data.json')
 
 end_date = datetime.now()
-start_date = end_date - timedelta(days=170)
+start_date = end_date - timedelta(days=180)
 
 ranges = []
 

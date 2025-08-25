@@ -19,7 +19,6 @@ except Exception as e:
     print(f'Ошибка при чтении ссылки! {e}')
     sys.exit(1)
 
-SQL = DBController()
 js = JsonController('polk_all_data.json')
 
 # печать результатов
@@ -46,7 +45,7 @@ for uid in uids:
     print(f'Обработка письма: {subject}')
 
     if not message.html_part:
-        print(f'Письмо {uid} не содержит HTML')
+        print(f'Письмо {subject} не содержит HTML')
         continue
 
     html = message.html_part.get_payload().decode(message.html_part.charset)
@@ -54,47 +53,47 @@ for uid in uids:
     tables = soup.find_all('table')
     
     if not tables:
-        print(f'Нет таблиц в письме {uid}')
+        print(f'Нет таблиц в письме {subject}')
         continue
     
     try:
         rows = str(tables[9]).split('</tr>')
         rows = rows[4:-2]
     except Exception as e:
+        print(f'Ошибка при обработке письма {subject}')
         continue
     
-    lastDate = None
-    
     for line in rows:
-        cleaned_text = re.sub(r'<.*?>', '', line).strip()
-        cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
+        spitedStr = line.split('\n')
+        clearStrings = []
         
-        spitedStr = cleaned_text.split(' ')
-        
-        if (re.search(r'\b(\d{2})\.(\d{2})\.(\d{4})\b', spitedStr[0])):
-            date_obj = datetime.strptime(spitedStr[0], '%d.%m.%Y')
-            lastDate = date_obj.strftime('%Y-%m-%d')
+        for bufStr in spitedStr:
+            bufStr = re.sub(r'<.*?>', '', bufStr).strip()
+            bufStr = re.sub(r'\s+', ' ', bufStr).strip()
+            if (bufStr != ''):
+                clearStrings.append(bufStr)
+                
+        if (re.search(r'\b(\d{2})\.(\d{2})\.(\d{4})\b', clearStrings[0])):
+            lastFoundDate = datetime.strptime(clearStrings[0], '%d.%m.%Y').strftime('%Y-%m-%d')
+            print(f'Обнаружена новая дата: {lastFoundDate}')
             continue
         
-        if datetime.strptime(lastDate, '%Y-%m-%d') < previousDate:
+        if datetime.strptime(lastFoundDate, '%Y-%m-%d') <= previousDate:
             continue
-        
-        previousDate = datetime.strptime(lastDate, '%Y-%m-%d')
-        
-        name = ''
-        for namePart in spitedStr[0:-4:1]:
-            name += namePart + ' '
-        
+
         bufLine = {
             "shelf_id": 1,
-            "name": name.strip(),
-            "count": int(spitedStr[-2].replace(',000', '')),
-            "revenue": int(spitedStr[-1].replace(',', '')),
-            "date": lastDate,
+            "name": clearStrings[0].strip(),
+            "count": int(clearStrings[-2].replace(',000', '').strip()),
+            "revenue": int(clearStrings[-1].replace(' ', '').strip()),
+            "date": lastFoundDate,
             }
         
         readyLines.append(bufLine)
-    
+        print(bufLine)
+        
+    if (lastFoundDate is not None):
+        previousDate = datetime.strptime(lastFoundDate, '%Y-%m-%d')
 
 imap.logout()
 js.writeData(readyLines)

@@ -21,7 +21,6 @@ except Exception as e:
     print(f'Ошибка при чтении ссылки! {e}')
     sys.exit(1)
 
-SQL = DBController()
 js = JsonController('fox_all_data.json')
 
 # печать результатов
@@ -145,24 +144,33 @@ for uid in uids:
             continue
         
         for line in rows:
-            cleaned_text = re.sub(r'<.*?>', '', line).strip()
-            cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
-
-            spitedStr = cleaned_text.split(' ')
-            
-            name = ''
-            for namePart in spitedStr[1:-4:1]:
-                name += namePart + ' '
-
-            bufLine = {
-                "shelf_id": 3,
-                "name": name.strip(),
-                "count": int(spitedStr[-4]),
-                "revenue": int(spitedStr[-1]),
-                "date": lastDate
-                }
-            
-            readyLines.append(bufLine)
+            try:
+                lineList = []
+                if ('<td class="R8C1">' in line):
+                    contentLine = line.split('<td class="R8C1">')
+                elif ('<td class="R9C1">' in line):
+                    contentLine = line.split('<td class="R9C1">')
+                
+                for content in contentLine:
+                    content = re.sub(r'<.*?>', '', content).strip()
+                    content = re.sub(r'\s+', ' ', content).strip()
+                    lineList.append(content)
+                
+                bufLine = {
+                    "shelf_id": 3,
+                    "name": re.sub(r'^\d+(?:\.\d+)*\.\s*', '', lineList[0]).strip(),
+                    "count": int(re.sub(r'\s+', '', lineList[1])),
+                    "revenue": int(re.sub(r'\s+', '', lineList[-1])),
+                    "date": lastDate
+                    }
+                
+                readyLines.append(bufLine)
+            except Exception as e:
+                print(rows)
+                print(line)
+                print(lineList)
+                print(e)
+                sys.exit(1)
 
 imap.logout()
 js.writeData(readyLines)
