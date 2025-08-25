@@ -83,28 +83,28 @@ class ShelfCollector:
                 lastDate = None
                 
                 for line in rows:
-                    cleaned_text = re.sub(r'<.*?>', '', line).strip()
-                    cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
+                    spitedStr = line.split('\n')
+                    clearStrings = []
                     
-                    spitedStr = cleaned_text.split(' ')
-                    
-                    if (re.search(r'\b(\d{2})\.(\d{2})\.(\d{4})\b', spitedStr[0])):
-                        date_obj = datetime.strptime(spitedStr[0], '%d.%m.%Y')
+                    for bufStr in spitedStr:
+                        bufStr = re.sub(r'<.*?>', '', bufStr).strip()
+                        bufStr = re.sub(r'\s+', ' ', bufStr).strip()
+                        if (bufStr != ''):
+                            clearStrings.append(bufStr)
+                            
+                    if (re.search(r'\b(\d{2})\.(\d{2})\.(\d{4})\b', clearStrings[0])):
+                        date_obj = datetime.strptime(clearStrings[0], '%d.%m.%Y')
                         lastDate = date_obj.strftime('%Y-%m-%d')
                         continue
                     
                     if datetime.strptime(lastDate, '%Y-%m-%d') <= previousDate:
                         continue
-                    
-                    name = ''
-                    for namePart in spitedStr[0:-4:1]:
-                        name += namePart + ' '
-                    
+                        
                     bufLine = self._createDict(
                         shelf_id = 1,
-                        name = name,
-                        count = spitedStr[-2].replace(',000', ''),
-                        revenue = spitedStr[-1].replace(',', ''),
+                        name = clearStrings[0],
+                        count = clearStrings[-2].replace(',000', '').strip(),
+                        revenue = clearStrings[-1].replace(' ', '').strip(),
                         date = lastDate,
                     )
                     
@@ -196,7 +196,10 @@ class ShelfCollector:
                 
                 for line in rows:
                     lineList = []
-                    contentLine = line.split('<td class="R8C1">')
+                    if ('<td class="R8C1">' in line):
+                        contentLine = line.split('<td class="R8C1">')
+                    elif ('<td class="R9C1">' in line):
+                        contentLine = line.split('<td class="R9C1">')
                     
                     for content in contentLine:
                         content = re.sub(r'<.*?>', '', content).strip()
@@ -206,8 +209,8 @@ class ShelfCollector:
                     bufLine = self._createDict(
                         shelf_id = 3,
                         name = re.sub(r'^\d+(?:\.\d+)*\.\s*', '', lineList[0]),
-                        count = re.sub(r'\s+', '', lineList[1]),
-                        revenue = re.sub(r'\s+', '', lineList[-1]),
+                        count = re.sub(r'\s+', '', lineList[1]).strip(),
+                        revenue = re.sub(r'\s+', '', lineList[-1]).strip(),
                         date = lastDate,
                     )
                     
