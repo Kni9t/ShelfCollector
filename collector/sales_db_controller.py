@@ -39,7 +39,7 @@ class DBController():
             self.cursor.execute(cmd)
             self.logger.info('Таблица market_sales успешно инициирована!')
             
-            cmd = f"CREATE TABLE IF NOT EXISTS sales (id INTEGER PRIMARY KEY AUTOINCREMENT, shelf_id INTEGER, name TEXT, count INTEGER, revenue INTEGER, date TEXT, FOREIGN KEY(shelf_id) REFERENCES shelves(id))"
+            cmd = f"CREATE TABLE IF NOT EXISTS sales (id INTEGER PRIMARY KEY AUTOINCREMENT, shelf_id INTEGER, name TEXT, count INTEGER, revenue REAL, date TEXT, FOREIGN KEY(shelf_id) REFERENCES shelves(id))"
             self.cursor.execute(cmd)
             self.logger.info('Таблица sales успешно инициирована!')
             
@@ -51,7 +51,7 @@ class DBController():
         try:
             for line in dataDict:
                 cmd = f"INSERT INTO sales (shelf_id, name, count, revenue, date) VALUES (?, ?, ?, ?, ?)"
-                self.cursor.execute(cmd, (int(line['shelf_id']), str(line['name']), int(line['count']), int(line['revenue']), str(line['date'])))
+                self.cursor.execute(cmd, (int(line['shelf_id']), str(line['name']), int(line['count']), float(line['revenue']), str(line['date'])))
             
             self.connection.commit()
             
@@ -134,7 +134,7 @@ class DBController():
                 saleList.append({
                     "date": str(row[0]),
                     "name": str(row[1]),
-                    "revenue": int(row[2]),
+                    "revenue": float(row[2]),
                     "count": int(row[3]),
                 })
             

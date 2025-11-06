@@ -323,8 +323,8 @@ class ShelfCollector:
         bufLine = {
                     "shelf_id": shelf_id,
                     "name": name.strip(),
-                    "count": int(count),
-                    "revenue": int(revenue),
+                    "count": int(float(count.replace(',', '.'))) if isinstance(count, str) else int(float(count)),
+                    "revenue": float(revenue.replace(',', '.')) if isinstance(revenue, str) else float(revenue),
                     "date": date,
                 }
         return bufLine
