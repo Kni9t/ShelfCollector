@@ -85,7 +85,7 @@ for uid in uids:
             "shelf_id": 1,
             "name": clearStrings[0].strip(),
             "count": int(clearStrings[-2].replace(',000', '').strip()),
-            "revenue": int(clearStrings[-1].replace(' ', '').strip()),
+            "revenue": float(clearStrings[-1].replace(' ', '').replace(',', '.').strip()),
             "date": lastFoundDate,
             }
         

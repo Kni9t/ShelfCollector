@@ -53,14 +53,14 @@ for d_from, d_to in ranges:
         spitedStr.pop(0)
         
         name = ''
-        for namePart in spitedStr[0:-3:1]:
+        for namePart in spitedStr[0:-4:1]:
             name += namePart + ' '
         
         line = {
             "shelf_id": 2,
             "name": name.strip(),
-            "count": int(spitedStr[-3]),
-            "revenue": int(spitedStr[-1]),
+            "count": int(spitedStr[-4]),
+            "revenue": float(spitedStr[-1].replace(',', '.')),
             "date": d_to,
         }
         print(line)

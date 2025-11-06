@@ -160,7 +160,7 @@ for uid in uids:
                     "shelf_id": 3,
                     "name": re.sub(r'^\d+(?:\.\d+)*\.\s*', '', lineList[0]).strip(),
                     "count": int(re.sub(r'\s+', '', lineList[1])),
-                    "revenue": int(re.sub(r'\s+', '', lineList[-1])),
+                    "revenue": float(re.sub(r'\s+', '', lineList[-1]).replace(',', '.')),
                     "date": lastDate
                     }
                 
