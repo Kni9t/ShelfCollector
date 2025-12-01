@@ -26,12 +26,58 @@ class ShelfCollector:
                 "wolf": "None"
             }
             self.js.writeData(bufDate)
+            
+    def GetSales(self, email):
+        full_mail = self._GetMailContent(email, 1)[0]
+        mail_payload = full_mail.html_part.get_payload().decode(full_mail.html_part.charset)
+        
+        soup = BeautifulSoup(mail_payload, 'html.parser')
+        tables = soup.find_all('table')
+        
+        trList = []
+        tdList = []
+        resultList = []
+        
+        # Find first table with <tr> tag with class R7
+        for tab in tables:
+            buf = tab.find_all('tr', class_="R7")
+            if buf:
+                if (len(buf) > 0):
+                    trList = buf
+                    break
+        
+        # Find four <td> tags in each <tr>
+        for tr in trList:
+            buf = tr.find_all('td', limit = 4)
+            if buf:
+                if (len(buf) > 0):
+                    tdList.append(buf)
+                    
+        # Format text
+        for block in tdList:
+            buf = []
+            
+            for td in block:
+                text = td.string
+                if text:
+                    # buf.append(re.sub(r'^\d+(?:\.\d+)*\.\s*', '', text.strip().replace(u'\xa0', '')))
+                    buf.append(text.strip().replace(u'\xa0', ''))
+                else:
+                    buf.append(text)
+                
+            resultList.append(buf)
+
+        tables = resultList
+        
+        with open(email, "w", encoding='utf8') as outfile:
+            outfile.write(str(tables))
+            outfile.close()
     
     def CollectSalesPolks(self):
         try:
             sender_email = 'shop@polkius.ru'
             
-            mails = self._GetMessagesFromGmail(sender_email, 1)
+            mails = self._GetMailContent(sender_email, 1)
             
             readyLines = []
             
@@ -139,7 +185,7 @@ class ShelfCollector:
         try:
             sender_email = 'lisyapolka@mail.ru'
             
-            mails = self._GetMessagesFromGmail(sender_email, 1)
+            mails = self._GetMailContent(sender_email, 1)
             
             readyLines = []
             
@@ -329,7 +375,7 @@ class ShelfCollector:
                 }
         return bufLine
     
-    def _GetMessagesFromGmail(self, email, count = 0):
+    def _GetMailContent(self, email, count = 0):
         try:
             imap = imapclient.IMAPClient('imap.gmail.com', ssl=True)
             imap.login(self.gmailLogin, self.gmailPass)
