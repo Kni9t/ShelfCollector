@@ -56,14 +56,32 @@ class ShelfCollector:
         # Format text
         for block in tdList:
             buf = []
-            
+            count = 0
             for td in block:
                 text = td.string
                 if text:
-                    # buf.append(re.sub(r'^\d+(?:\.\d+)*\.\s*', '', text.strip().replace(u'\xa0', '')))
-                    buf.append(text.strip().replace(u'\xa0', ''))
+                    text = text.strip()
+                    text = text.replace(u'\xa0', '')
+                    
+                    match count:
+                        case 0:
+                            bufDate = self._formatDate(text)
+                            if (bufDate):
+                                text = bufDate
+                                buf.append(text)
+                                break
+                        case 1:
+                            pass
+                        case 2:
+                            pass
+                        case 3:
+                            pass
+                    
+                    text = text.replace(',000', '')
+                    buf.append(text)
                 else:
                     buf.append(text)
+                count += 1
                 
             resultList.append(buf)
 
@@ -364,6 +382,18 @@ class ShelfCollector:
                     
             print(msg)
             self.logger.error(msg)
+    
+    def _formatDate(self, dateStr):
+        resultDate = None
+        
+        if re.search(r'\b(\d{2})\.(\d{2})\.(\d{4})\b', dateStr):
+            try:
+                resultDate = datetime.strptime(dateStr, '%d.%m.%Y').strftime('%Y-%m-%d')
+                
+            except Exception as e:
+                resultDate = datetime.strptime(dateStr, '%d.%m.%Y %H:%M:%S').strftime('%Y-%m-%d')
+                # print('Ошибка') TODO?
+        return resultDate
     
     def _createDict(self, shelf_id, name, count, revenue, date):
         bufLine = {
