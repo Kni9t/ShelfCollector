@@ -65,6 +65,8 @@ class ShelfCollector:
                     
                     match count:
                         case 0:
+                            if ('Оксана' in text):
+                                break
                             bufDate = self._formatDate(text)
                             if (bufDate):
                                 text = bufDate
@@ -82,8 +84,8 @@ class ShelfCollector:
                 else:
                     buf.append(text)
                 count += 1
-                
-            resultList.append(buf)
+            if (len(buf) > 0):
+                resultList.append(buf)
 
         tables = resultList
         
