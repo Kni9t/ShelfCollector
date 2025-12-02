@@ -342,7 +342,7 @@ class ShelfCollector:
             print(msg)
             self.logger.error(msg)
     
-    def _formatDate(self, dateStr):
+    def _formatDateToStr(self, dateStr):
         resultDate = None
         
         if re.search(r'\b(\d{2})\.(\d{2})\.(\d{4})\b', dateStr):
@@ -388,7 +388,7 @@ class ShelfCollector:
                         case 0:
                             if ('Оксана' in text):
                                 break
-                            bufDate = self._formatDate(text)
+                            bufDate = self._formatDateToStr(text)
                             if (bufDate):
                                 text = bufDate
                                 buf.append(text)
