@@ -28,69 +28,26 @@ class ShelfCollector:
             self.js.writeData(bufDate)
             
     def GetSales(self, email):
-        full_mail = self._GetMailContent(email, 1)[0]
+        
+        if email == 'shop@polkius.ru':
+            full_mail = self._GetMailContent(email, 2)[1]
+        else:
+            full_mail = self._GetMailContent(email, 1)[0]
+            
         mail_payload = full_mail.html_part.get_payload().decode(full_mail.html_part.charset)
         
         soup = BeautifulSoup(mail_payload, 'html.parser')
         tables = soup.find_all('table')
         
-        trList = []
-        tdList = []
-        resultList = []
+        with open(f"full-{email}.html", "w", encoding='utf8') as outfile:
+            outfile.write(str(tables))
+            outfile.close()
         
-        # Find first table with <tr> tag with class R7
-        for tab in tables:
-            buf = tab.find_all('tr', class_="R7")
-            if buf:
-                if (len(buf) > 0):
-                    trList = buf
-                    break
-        
-        # Find four <td> tags in each <tr>
-        for tr in trList:
-            buf = tr.find_all('td', limit = 4)
-            if buf:
-                if (len(buf) > 0):
-                    tdList.append(buf)
-                    
-        # Format text
-        for block in tdList:
-            buf = []
-            count = 0
-            for td in block:
-                text = td.string
-                if text:
-                    text = text.strip()
-                    text = text.replace(u'\xa0', '')
-                    
-                    match count:
-                        case 0:
-                            if ('Оксана' in text):
-                                break
-                            bufDate = self._formatDate(text)
-                            if (bufDate):
-                                text = bufDate
-                                buf.append(text)
-                                break
-                        case 1:
-                            pass
-                        case 2:
-                            pass
-                        case 3:
-                            pass
-                    
-                    text = text.replace(',000', '')
-                    buf.append(text)
-                else:
-                    buf.append(text)
-                count += 1
-            if (len(buf) > 0):
-                resultList.append(buf)
-
-        tables = resultList
+        tables = self._parsingMail(tables)
+        resultingList = self._parsingRowList(tables)
         
         with open(email, "w", encoding='utf8') as outfile:
-            outfile.write(str(tables))
+            outfile.write(str(resultingList))
             outfile.close()
     
     def CollectSalesPolks(self):
@@ -397,13 +354,82 @@ class ShelfCollector:
                 # print('Ошибка') TODO?
         return resultDate
     
+    def _parsingMail(self, tables):
+        trList = []
+        tdList = []
+        resultList = []
+        
+        # Find first table with <tr> tag with class R7
+        for tab in tables:
+            buf = tab.find_all('tr', class_="R7")
+            if buf:
+                if (len(buf) > 0):
+                    trList = buf
+                    break
+        
+        # Find four <td> tags in each <tr>
+        for tr in trList:
+            buf = tr.find_all('td', limit = 4)
+            if buf:
+                if (len(buf) > 0):
+                    tdList.append(buf)
+                    
+        # Format text
+        for block in tdList:
+            buf = []
+            count = 0
+            for td in block:
+                text = td.string
+                if text:
+                    text = text.strip()
+                    text = text.replace(u'\xa0', '')
+                    
+                    match count:
+                        case 0:
+                            if ('Оксана' in text):
+                                break
+                            bufDate = self._formatDate(text)
+                            if (bufDate):
+                                text = bufDate
+                                buf.append(text)
+                                break
+                        case 1:
+                            pass
+                        case 2:
+                            pass
+                        case 3:
+                            pass
+                    
+                    text = text.replace(',000', '')
+                    buf.append(text)
+                else:
+                    buf.append(text)
+                count += 1
+            if (len(buf) > 0):
+                resultList.append(buf)
+
+        return resultList
+    
+    def _parsingRowList(self, rowList: list):
+        currentDate = datetime.strptime('2000-01-01', '%Y-%m-%d')
+        dictList = []
+        
+        for row in rowList:
+            if len(row) == 4:
+                dictList.append(self._createDict(-1, row[0], -1, row[-1], currentDate))
+            elif len(row) == 1:
+                if (datetime.strptime(row[0], '%Y-%m-%d') > currentDate):
+                    currentDate = datetime.strptime(row[0], '%Y-%m-%d')
+        
+        return dictList
+    
     def _createDict(self, shelf_id, name, count, revenue, date):
         bufLine = {
                     "shelf_id": shelf_id,
                     "name": name.strip(),
                     "count": int(float(count.replace(',', '.'))) if isinstance(count, str) else int(float(count)),
                     "revenue": float(revenue.replace(',', '.')) if isinstance(revenue, str) else float(revenue),
-                    "date": date,
+                    "date": datetime.strftime(date, '%Y-%m-%d'),
                 }
         return bufLine
     
