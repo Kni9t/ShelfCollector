@@ -43,8 +43,8 @@ class ShelfCollector:
             outfile.write(str(tables))
             outfile.close()
         
-        tables = self._parsingMail(tables)
-        resultingList = self._parsingRowList(tables)
+        tables, shelfID = self._parsingMail(tables, email)
+        resultingList = self._parsingRowList(tables, shelfID)
         
         with open(email, "w", encoding='utf8') as outfile:
             outfile.write(str(resultingList))
@@ -354,7 +354,7 @@ class ShelfCollector:
                 # print('Ошибка') TODO?
         return resultDate
     
-    def _parsingMail(self, tables):
+    def _parsingMail(self, tables, email):
         trList = []
         tdList = []
         resultList = []
@@ -383,6 +383,7 @@ class ShelfCollector:
                 if text:
                     text = text.strip()
                     text = text.replace(u'\xa0', '')
+                    text = text.replace(',000', '')
                     
                     match count:
                         case 0:
@@ -393,14 +394,7 @@ class ShelfCollector:
                                 text = bufDate
                                 buf.append(text)
                                 break
-                        case 1:
-                            pass
-                        case 2:
-                            pass
-                        case 3:
-                            pass
                     
-                    text = text.replace(',000', '')
                     buf.append(text)
                 else:
                     buf.append(text)
@@ -408,20 +402,43 @@ class ShelfCollector:
             if (len(buf) > 0):
                 resultList.append(buf)
 
-        return resultList
+        return resultList, self._getIdShelfFromEmail(email)
     
-    def _parsingRowList(self, rowList: list):
+    def _parsingRowList(self, rowList: list, shelfID):
         currentDate = datetime.strptime('2000-01-01', '%Y-%m-%d')
         dictList = []
         
         for row in rowList:
             if len(row) == 4:
-                dictList.append(self._createDict(-1, row[0], -1, row[-1], currentDate))
+                bufNum = []
+                for num in row[1:-1]:
+                    number = self._parsingFloat(num)
+                    if number and type(number) is float:
+                        bufNum.append(number)
+                bufNum.sort()
+                
+                dictList.append(self._createDict(shelfID, row[0], bufNum[0], row[-1], currentDate))
             elif len(row) == 1:
                 if (datetime.strptime(row[0], '%Y-%m-%d') > currentDate):
                     currentDate = datetime.strptime(row[0], '%Y-%m-%d')
         
         return dictList
+    
+    def _getIdShelfFromEmail(self, email):
+        match email:
+            case 'shop@polkius.ru':
+                return 1
+            case 'lisyapolka@mail.ru':
+                return 3
+            case _:
+                return None
+
+    def _parsingFloat(self, targetStr: str):
+        try:
+            x = float(targetStr)
+            return x
+        except ValueError:
+            return None
     
     def _createDict(self, shelf_id, name, count, revenue, date):
         bufLine = {
