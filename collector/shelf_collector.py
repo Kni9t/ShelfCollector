@@ -15,6 +15,8 @@ class ShelfCollector:
         self.gmailPass = gmailPass
         self.js = JsonController('params/buf_shelf_info.json')
         
+        self.wrongTitleNameList = ["ежемесячный"]
+        
         self.logger = logging.getLogger('shelf_logger')
         
         bufData = dict(self.js.getData())
@@ -27,24 +29,19 @@ class ShelfCollector:
             }
             self.js.writeData(bufDate)
             
-    def GetSales(self, email):
+    def GetSales(self, email, count = 0):
         
-        if email == 'shop@polkius.ru':
-            full_mail = self._GetMailContent(email, 2)[1]
-        else:
-            full_mail = self._GetMailContent(email, 1)[0]
+        full_mail = self._GetMailContent(email, count)
+        resultingList = []
+        
+        for mail in full_mail:
+            mail_payload = mail.html_part.get_payload().decode(mail.html_part.charset)
             
-        mail_payload = full_mail.html_part.get_payload().decode(full_mail.html_part.charset)
+            soup = BeautifulSoup(mail_payload, 'html.parser')
+            tables = soup.find_all('table')
         
-        soup = BeautifulSoup(mail_payload, 'html.parser')
-        tables = soup.find_all('table')
-        
-        with open(f"full-{email}.html", "w", encoding='utf8') as outfile:
-            outfile.write(str(tables))
-            outfile.close()
-        
-        tables, shelfID = self._parsingMail(tables, email)
-        resultingList = self._parsingRowList(tables, shelfID)
+            tables, shelfID = self._parsingMail(tables, email)
+            resultingList.append(self._parsingRowList(tables, shelfID))
         
         with open(email, "w", encoding='utf8') as outfile:
             outfile.write(str(resultingList))
@@ -470,7 +467,13 @@ class ShelfCollector:
                 raw_msg = imap.fetch([uid], ['BODY[]'])[uid][b'BODY[]']
                 message = pyzmail.PyzMessage.factory(raw_msg)
                 
-                messageList.append(message)
+                wrongMail = False
+                for wrongName in self.wrongTitleNameList:
+                    if wrongName in message.get_subject().lower():
+                        wrongMail = True
+                        break
+                if (not wrongMail):
+                    messageList.append(message)
                 
             imap.logout()
             return messageList
