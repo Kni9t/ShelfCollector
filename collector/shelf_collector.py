@@ -41,7 +41,9 @@ class ShelfCollector:
             tables = soup.find_all('table')
         
             tables, shelfID = self._parsingMail(tables, email)
-            resultingList.append(self._parsingRowList(tables, shelfID))
+            readyLines = self._parsingRowList(tables, shelfID)
+            if (len(readyLines) > 0):
+                resultingList.append(readyLines)
         
         with open(email, "w", encoding='utf8') as outfile:
             outfile.write(str(resultingList))
