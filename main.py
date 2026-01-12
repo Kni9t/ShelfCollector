@@ -60,14 +60,16 @@ while True:
     try:
         dataList = []
         
-        dataList.append(Collector.CollectSalesWolf())
-        logger.info(f'Данные с полки Волчка успешно собраны!')
+        # dataList.append(Collector.CollectSalesWolf())
+        # logger.info(f'Данные с полки Волчка успешно собраны!')
         
-        dataList.append(Collector.CollectSalesPolks())
-        logger.info(f'Данные с полки Полкиус успешно собраны!')
+        # dataList.append(Collector.CollectSalesPolks())
+        Collector.GetSales('shop@polkius.ru', 1)
+        # logger.info(f'Данные с полки Полкиус успешно собраны!')
         
-        dataList.append(Collector.CollectSalesFox())
-        logger.info(f'Данные с Лисьей полки успешно собраны!')
+        # dataList.append(Collector.CollectSalesFox())
+        Collector.GetSales('lisyapolka@mail.ru')
+        # logger.info(f'Данные с Лисьей полки успешно собраны!')
         
         for data in dataList:
             if (data != []) and (data is not None):

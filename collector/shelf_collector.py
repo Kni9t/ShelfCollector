@@ -346,7 +346,7 @@ class ShelfCollector:
         
         if re.search(r'\b(\d{2})\.(\d{2})\.(\d{4})\b', dateStr):
             try:
-                resultDate = datetime.strptime(dateStr, '%d.%m.%Y').strftime('%Y-%m-%d')
+                resultDate = datetime.strptime(dateStr.split()[0], '%d.%m.%Y').strftime('%Y-%m-%d')
                 
             except Exception as e:
                 resultDate = datetime.strptime(dateStr, '%d.%m.%Y %H:%M:%S').strftime('%Y-%m-%d')
