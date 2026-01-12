@@ -153,10 +153,11 @@ class InformerBot:
     
     def Sales_Collect(self, message):
         DB = DBController()
-        market = DB.CheckMarketsHash(self.StateController.GetState(message.chat.id, 'selectedMarket'))
+        market_hash = self.StateController.GetState(message.chat.id, 'selectedMarket')
+        market = DB.CheckMarketsHash(market_hash)
 
         if market:
-            if (not DB.CheckMarketRunning(self.StateController.GetState(message.chat.id, 'selectedMarket'))):
+            if (not DB.CheckMarketRunning(market_hash)):
                 self.SendMessage(message, f"Для маркета: {market['name']} можно вносить продажи только в период с {datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)} по {datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)}", [])
                 return
         else:
@@ -203,7 +204,13 @@ class InformerBot:
                     msgTypeSales = 'Оплата: Онлайн перевод'
                     
                 if (lastID is not None):
-                    self.SendMessage(message, f"Продажа зарегистрирована!\nID: {lastID}\nСумма: {buf_sales['revenue']}\n{msgTypeSales}")
+                    sum = DB.SumAllMarketSales(market_hash)
+                    msg = f"Продажа зарегистрирована!\nID: {lastID}\nСумма: {buf_sales['revenue']}\n{msgTypeSales}"
+                    
+                    if sum:
+                        msg += f"\nПодитог по маркету: {sum}"
+                    
+                    self.SendMessage(message, msg)
                 
                     msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новую продажу для маркета: [{buf_sales}]'
                     self.logger.debug(msg)
@@ -228,7 +235,13 @@ class InformerBot:
                 if (resultChecking is not None):
                     if(resultChecking):
                         removedSales = DB.RemoveMarketSaleById(bufID * -1)
-                        self.SendMessage(message, f"Продажа, зарегистрированная в {removedSales['date']} {removedSales['time']}\nc ID: {removedSales['id']}, на сумму {removedSales['revenue']} успешно удалена!")
+                        sum = DB.SumAllMarketSales(market_hash)
+                        msg = f"Продажа, зарегистрированная в {removedSales['date']} {removedSales['time']}\nc ID: {removedSales['id']}, на сумму {removedSales['revenue']} успешно удалена!"
+                        
+                        if sum:
+                            msg += f"\nПодитог по маркету: {sum}"
+                            
+                        self.SendMessage(message, msg)
                         
                         msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} удалил продажу для маркета: [{removedSales}]'
                         self.logger.debug(msg)
