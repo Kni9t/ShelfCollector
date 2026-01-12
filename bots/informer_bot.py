@@ -246,9 +246,8 @@ class InformerBot:
         self.StateController.ResetAllState(message.chat.id)
         self.StateController.SetUserStats(message.chat.id, 'addNewMarket', True)
         
-        self.SendMessage(message, "Введите название маркета и его дату проведения. Формат записи следующий:")
-        self.SendMessage(message, "Название маркета <,> дата проведения в формате 2025-07-20-12:00 <,> дата окончания в формате 2025-07-20-12:00")
-        self.SendMessage(message, "Пример: `Название маркета, 2025-07-20-12:00, 2025-07-20-12:00`", [])
+        self.SendMessage(message, "Введите название маркета и его дату проведения. Формат записи следующий:\nНазвание маркета <,> дата проведения в формате 2025-07-20-12:00 <,> дата окончания в формате 2025-07-20-19:00, где\n2025 - год, 07 - месяц, 20 - день")
+        self.SendMessage(message, "Пример: `Название маркета, 2025-07-20-12:00, 2025-07-20-19:00`\n(На пример можно нажать, чтобы скопировать шаблон)", [])
     
     def Add_New_Market(self, message):
         data = []
