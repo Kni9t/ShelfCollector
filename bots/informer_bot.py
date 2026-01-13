@@ -208,7 +208,7 @@ class InformerBot:
                     msg = f"Продажа зарегистрирована!\nID: {lastID}\nСумма: {buf_sales['revenue']}\n{msgTypeSales}"
                     
                     if sum:
-                        msg += f"\nПодитог по маркету: {sum}"
+                        msg += f"\nПодитог по маркету: {sum} руб."
                     
                     self.SendMessage(message, msg)
                 
@@ -239,7 +239,7 @@ class InformerBot:
                         msg = f"Продажа, зарегистрированная в {removedSales['date']} {removedSales['time']}\nc ID: {removedSales['id']}, на сумму {removedSales['revenue']} успешно удалена!"
                         
                         if sum:
-                            msg += f"\nПодитог по маркету: {sum}"
+                            msg += f"\nПодитог по маркету: {sum} руб."
                             
                         self.SendMessage(message, msg)
                         
@@ -400,11 +400,43 @@ class InformerBot:
         if (message.text == "Доход по маркетам в прошлом месяце"):
             self.SendMessage(message, 'Пока данный функционал отсутствует!', [])
         
-        elif (message.text == "Детализация продаж по маркету"):
+        elif (message.text == "Детализация продаж по конкретному маркету"):
             self.StateController.ResetAllState(message.chat.id)
             self.StateController.SetUserStats(message.chat.id, 'market_detail', True)
             
             self.SendMessage(message, 'Введите код маркета, для которого необходимо получить детализацию:', [])
+            
+        elif (message.text == "Детализация продаж по авторизированному маркету"):
+            self.StateController.ResetAllState(message.chat.id)
+            marketHash = self.StateController.GetState(message.chat.id, 'selectedMarket')
+            
+            if (marketHash):
+                market = DB.CheckMarketsHash(marketHash)
+                salesDict = DB.GetMarketSaleByHash(marketHash)
+            
+                if (salesDict):
+                    msg = f'Продажи собранные на маркете: {market['name']} c {market['start_date']} по {market['end_date']}\n\n'
+                    
+                    for date, saleList in salesDict.items():
+                        msg += f'{date}\n'
+                    
+                        for sales in saleList:
+                            if (len(msg) >= 3900):
+                                self.SendMessage(message, f"{msg}", [])
+                                msg = 'Продолжение предыдущего сообщения...\n'
+                                
+                            msg += f'{sales['time']} - {sales['revenue']} руб.'
+                            
+                            if (sales['cash']):
+                                msg += f' наличные'
+                            
+                            msg += '\n'
+                            
+                        self.SendMessage(message, f"{msg}", [])
+                        msg = ''
+            else:
+                self.StateController.SetUserStats(message.chat.id, 'market_detail', True)
+                self.SendMessage(message, 'Введите код маркета, для которого необходимо получить детализацию:', [])
         
         elif (message.text == "Доход со всех маркетов"):
             salesList = DB.GetAllMarketSales()
