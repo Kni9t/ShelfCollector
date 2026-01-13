@@ -178,7 +178,7 @@ class DBController():
             return None
         
         except Exception as e:
-            msg = f'Ошибка получении продажи маркета по ID! [{e}]'
+            msg = f'Ошибка получении продажи маркета по Hash! [{e}]'
             self.logger.error(msg)
             return None
     
@@ -261,7 +261,27 @@ class DBController():
             msg = f'Ошибка при выполнении GetMarketsDate! [{e}]'
             self.logger.error(msg)
             return None
+    
+    def SumAllMarketSales(self, Hash: str):
+        try:
+            if (Hash != ""):
+                sales = self.GetMarketSaleByHash(Hash)
+                sum = 0
+                
+                if (sales):
+                    for date in sales:
+                        for sale in sales[date]:
+                            sum += int(sale["revenue"])
+                        
+                    return sum
+                
+            return None
         
+        except Exception as e:
+            msg = f'Ошибка суммирования продаж маркета по ID! [{e}]'
+            self.logger.error(msg)
+            return None
+    
     def CheckMarketRunning(self, hash, date = None):
         try:
             if (date is None):

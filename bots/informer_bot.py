@@ -153,10 +153,11 @@ class InformerBot:
     
     def Sales_Collect(self, message):
         DB = DBController()
-        market = DB.CheckMarketsHash(self.StateController.GetState(message.chat.id, 'selectedMarket'))
+        market_hash = self.StateController.GetState(message.chat.id, 'selectedMarket')
+        market = DB.CheckMarketsHash(market_hash)
 
         if market:
-            if (not DB.CheckMarketRunning(self.StateController.GetState(message.chat.id, 'selectedMarket'))):
+            if (not DB.CheckMarketRunning(market_hash)):
                 self.SendMessage(message, f"Для маркета: {market['name']} можно вносить продажи только в период с {datetime.strptime(market['start_date'], "%Y-%m-%d %H:%M") - timedelta(hours=4)} по {datetime.strptime(market['end_date'], "%Y-%m-%d %H:%M").replace(hour=23, minute=59)}", [])
                 return
         else:
@@ -203,7 +204,13 @@ class InformerBot:
                     msgTypeSales = 'Оплата: Онлайн перевод'
                     
                 if (lastID is not None):
-                    self.SendMessage(message, f"Продажа зарегистрирована!\nID: {lastID}\nСумма: {buf_sales['revenue']}\n{msgTypeSales}")
+                    sum = DB.SumAllMarketSales(market_hash)
+                    msg = f"Продажа зарегистрирована!\nID: {lastID}\nСумма: {buf_sales['revenue']}\n{msgTypeSales}"
+                    
+                    if sum:
+                        msg += f"\nПодитог по маркету: {sum} руб."
+                    
+                    self.SendMessage(message, msg)
                 
                     msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} добавил новую продажу для маркета: [{buf_sales}]'
                     self.logger.debug(msg)
@@ -228,7 +235,13 @@ class InformerBot:
                 if (resultChecking is not None):
                     if(resultChecking):
                         removedSales = DB.RemoveMarketSaleById(bufID * -1)
-                        self.SendMessage(message, f"Продажа, зарегистрированная в {removedSales['date']} {removedSales['time']}\nc ID: {removedSales['id']}, на сумму {removedSales['revenue']} успешно удалена!")
+                        sum = DB.SumAllMarketSales(market_hash)
+                        msg = f"Продажа, зарегистрированная в {removedSales['date']} {removedSales['time']}\nc ID: {removedSales['id']}, на сумму {removedSales['revenue']} успешно удалена!"
+                        
+                        if sum:
+                            msg += f"\nПодитог по маркету: {sum} руб."
+                            
+                        self.SendMessage(message, msg)
                         
                         msg = f'Пользователь {message.from_user.username} из чата: {message.chat.id} удалил продажу для маркета: [{removedSales}]'
                         self.logger.debug(msg)
@@ -246,9 +259,8 @@ class InformerBot:
         self.StateController.ResetAllState(message.chat.id)
         self.StateController.SetUserStats(message.chat.id, 'addNewMarket', True)
         
-        self.SendMessage(message, "Введите название маркета и его дату проведения. Формат записи следующий:")
-        self.SendMessage(message, "Название маркета <,> дата проведения в формате 2025-07-20-12:00 <,> дата окончания в формате 2025-07-20-12:00")
-        self.SendMessage(message, "Пример: `Название маркета, 2025-07-20-12:00, 2025-07-20-12:00`", [])
+        self.SendMessage(message, "Введите название маркета и его дату проведения. Формат записи следующий:\nНазвание маркета <,> дата проведения в формате 2025-07-20-12:00 <,> дата окончания в формате 2025-07-20-19:00, где\n2025 - год, 07 - месяц, 20 - день")
+        self.SendMessage(message, "Пример: `Название маркета, 2025-07-20-12:00, 2025-07-20-19:00`\n(На пример можно нажать, чтобы скопировать шаблон)", [])
     
     def Add_New_Market(self, message):
         data = []
@@ -388,11 +400,43 @@ class InformerBot:
         if (message.text == "Доход по маркетам в прошлом месяце"):
             self.SendMessage(message, 'Пока данный функционал отсутствует!', [])
         
-        elif (message.text == "Детализация продаж по маркету"):
+        elif (message.text == "Детализация продаж по конкретному маркету"):
             self.StateController.ResetAllState(message.chat.id)
             self.StateController.SetUserStats(message.chat.id, 'market_detail', True)
             
             self.SendMessage(message, 'Введите код маркета, для которого необходимо получить детализацию:', [])
+            
+        elif (message.text == "Детализация продаж по авторизированному маркету"):
+            self.StateController.ResetAllState(message.chat.id)
+            marketHash = self.StateController.GetState(message.chat.id, 'selectedMarket')
+            
+            if (marketHash):
+                market = DB.CheckMarketsHash(marketHash)
+                salesDict = DB.GetMarketSaleByHash(marketHash)
+            
+                if (salesDict):
+                    msg = f'Продажи собранные на маркете: {market['name']} c {market['start_date']} по {market['end_date']}\n\n'
+                    
+                    for date, saleList in salesDict.items():
+                        msg += f'{date}\n'
+                    
+                        for sales in saleList:
+                            if (len(msg) >= 3900):
+                                self.SendMessage(message, f"{msg}", [])
+                                msg = 'Продолжение предыдущего сообщения...\n'
+                                
+                            msg += f'{sales['time']} - {sales['revenue']} руб.'
+                            
+                            if (sales['cash']):
+                                msg += f' наличные'
+                            
+                            msg += '\n'
+                            
+                        self.SendMessage(message, f"{msg}", [])
+                        msg = ''
+            else:
+                self.StateController.SetUserStats(message.chat.id, 'market_detail', True)
+                self.SendMessage(message, 'Введите код маркета, для которого необходимо получить детализацию:', [])
         
         elif (message.text == "Доход со всех маркетов"):
             salesList = DB.GetAllMarketSales()
